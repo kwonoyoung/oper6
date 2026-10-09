@@ -611,7 +611,17 @@
       $('model').value = PROVIDERS[pv].model;
       try { $('apikey').value = cleanKey(localStorage.getItem(PROVIDERS[pv].keyName) || ''); } catch (e) { $('apikey').value = ''; }
     };
+    const saveApiKey = () => {
+      const pv = $('provider').value;
+      const key = cleanKey($('apikey').value);
+      try {
+        if (key) localStorage.setItem(PROVIDERS[pv].keyName, key);
+        else localStorage.removeItem(PROVIDERS[pv].keyName);
+      } catch (e) {}
+    };
     $('provider').addEventListener('change', loadProvider);
+    $('apikey').addEventListener('input', saveApiKey);
+    $('apikey').addEventListener('change', saveApiKey);
     loadProvider();
     $('ai').addEventListener('click', aiDraft);
     $('reset').addEventListener('click', () => {
