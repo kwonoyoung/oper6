@@ -3,81 +3,236 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#163b67">
 <title>공문 기안문 작성기</title>
 <style>
-  body{font-family:"Malgun Gothic","맑은 고딕",sans-serif;margin:0;padding:16px;background:#f5f6f8;color:#222;line-height:1.5}
-  main{max-width:860px;margin:0 auto}
-  h1{font-size:20px;margin:8px 0 12px}
-  h2{font-size:15px;margin:18px 0 6px}
-  textarea{width:100%;box-sizing:border-box;min-height:220px;font:14px/1.6 "Malgun Gothic",sans-serif;padding:10px;border:1px solid #bbb;border-radius:6px;background:#fff}
-  #out{min-height:260px;font-family:"Batang","바탕",serif;font-size:15px;line-height:1.7}
-  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0}
-  button{padding:8px 14px;border:0;border-radius:6px;background:#2d5fa8;color:#fff;cursor:pointer;font-size:14px}
-  button.sub{background:#6b7280}
-  select{padding:6px;font-size:14px;border-radius:4px}
-  .warn{background:#fff4e5;border:1px solid #f0b35b;padding:8px 12px;border-radius:6px;margin:8px 0;font-size:14px}
-  .warn div{margin:2px 0}
-  .hint{font-size:13px;color:#555}
-  .flash{font-size:13px;color:#2d5fa8;min-height:18px}
-  footer{font-size:12px;color:#777;margin:20px 0}
-  @media (max-width:600px){body{padding:12px}}
+  :root{
+    --navy:#163b67;
+    --navy-2:#24598f;
+    --blue:#2d6aa3;
+    --sky:#eef6ff;
+    --mint:#e9f8f4;
+    --ink:#172033;
+    --muted:#667085;
+    --line:#dce5ef;
+    --card:#ffffff;
+    --bg:#f5f8fc;
+    --danger-bg:#fff7e8;
+    --danger-line:#f2c46d;
+    --shadow:0 18px 50px rgba(25,55,93,.10);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    font-family:"Pretendard","SUIT","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(circle at 12% 0%, rgba(102,176,255,.18), transparent 28rem),
+      linear-gradient(180deg,#f8fbff 0,#f5f8fc 42rem,#f5f8fc 100%);
+    line-height:1.65;
+  }
+  button,input,select,textarea{font:inherit}
+  .hero{
+    position:relative;
+    overflow:hidden;
+    background:linear-gradient(135deg,#11375f 0%,#1f5588 58%,#2d6ea6 100%);
+    color:#fff;
+    padding:54px 20px 86px;
+  }
+  .hero::after{
+    content:"";
+    position:absolute;
+    width:420px;height:420px;border-radius:50%;
+    right:-120px;top:-180px;
+    background:rgba(255,255,255,.08);
+    box-shadow:-220px 210px 0 rgba(255,255,255,.04);
+  }
+  .hero-inner{max-width:1180px;margin:0 auto;position:relative;z-index:1}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:15px;letter-spacing:-.02em}
+  .brand-mark{
+    width:34px;height:34px;border-radius:11px;
+    display:grid;place-items:center;background:rgba(255,255,255,.14);
+    border:1px solid rgba(255,255,255,.2);font-size:18px
+  }
+  .eyebrow{
+    display:inline-flex;align-items:center;gap:7px;
+    margin-top:34px;padding:7px 12px;border-radius:999px;
+    background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);
+    font-size:13px;font-weight:700;color:#eaf5ff
+  }
+  .eyebrow::before{content:"✦";font-size:11px}
+  h1{font-size:clamp(34px,5vw,56px);line-height:1.12;letter-spacing:-.045em;margin:16px 0 14px}
+  .hero p{max-width:760px;margin:0;color:#dcecff;font-size:16px}
+  .hero-points{display:flex;flex-wrap:wrap;gap:9px;margin-top:22px}
+  .hero-points span{font-size:12px;font-weight:700;padding:7px 10px;border-radius:10px;background:rgba(255,255,255,.10);color:#f2f8ff}
+
+  main{max-width:1180px;margin:-44px auto 0;padding:0 20px 42px;position:relative;z-index:2}
+  .workspace{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px;align-items:start}
+  .card{
+    background:rgba(255,255,255,.98);
+    border:1px solid rgba(211,224,238,.95);
+    border-radius:24px;
+    box-shadow:var(--shadow);
+    overflow:hidden;
+  }
+  .card-head{padding:25px 28px 18px;border-bottom:1px solid #edf1f6}
+  .card-title{display:flex;align-items:center;gap:12px;margin:0;font-size:20px;letter-spacing:-.03em}
+  .num{
+    display:inline-grid;place-items:center;width:30px;height:30px;border-radius:10px;
+    background:#eaf3fd;color:#1e5b91;font-size:13px;font-weight:900
+  }
+  .card-desc{margin:7px 0 0 42px;color:var(--muted);font-size:13px}
+  .card-body{padding:24px 28px 28px}
+  .field-label{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px;font-size:13px;font-weight:800;color:#344054}
+  .field-label small{font-weight:500;color:#98a2b3}
+  textarea,input,select{
+    width:100%;border:1px solid var(--line);background:#fff;color:var(--ink);
+    border-radius:13px;outline:none;transition:.2s border-color,.2s box-shadow,.2s background;
+  }
+  textarea{padding:15px 16px;resize:vertical;line-height:1.7}
+  input,select{height:45px;padding:0 13px}
+  textarea:focus,input:focus,select:focus{border-color:#66a4dc;box-shadow:0 0 0 4px rgba(45,106,163,.09)}
+  #req{min-height:300px;background:#fbfdff}
+  #out{min-height:515px;font-family:"Batang","바탕",serif;font-size:15px;line-height:1.8;background:#fcfdff}
+  .controls{display:grid;grid-template-columns:1fr 1.4fr;gap:14px;margin-top:17px}
+  .field{min-width:0}
+  .field.wide{grid-column:1/-1}
+  .provider-model{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .key-wrap{display:grid;grid-template-columns:1fr;gap:8px}
+  .privacy{
+    display:flex;gap:10px;align-items:flex-start;margin-top:14px;padding:12px 13px;border-radius:13px;
+    background:#f7fafc;border:1px solid #e7edf4;color:#667085;font-size:12px
+  }
+  .privacy strong{color:#344054}
+  .privacy-icon{flex:0 0 auto;width:24px;height:24px;display:grid;place-items:center;border-radius:8px;background:#eaf3fd;color:#1f5e95;font-size:12px}
+  .actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:18px}
+  button{
+    min-height:46px;padding:0 20px;border:0;border-radius:13px;cursor:pointer;font-weight:800;letter-spacing:-.02em;
+    transition:transform .15s ease,box-shadow .15s ease,opacity .15s ease
+  }
+  button:hover{transform:translateY(-1px)}
+  button:active{transform:translateY(0)}
+  button:disabled{opacity:.55;cursor:not-allowed;transform:none}
+  #ai{background:linear-gradient(135deg,#1a4f80,#2d6ea6);color:#fff;box-shadow:0 10px 22px rgba(35,91,145,.22)}
+  button.sub{background:#eef3f8;color:#2c4660;border:1px solid #d8e2ec}
+  .flash{font-size:12px;color:#2b689f;min-height:18px;font-weight:700}
+  .preview-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px}
+  .status-dot{display:inline-flex;align-items:center;gap:7px;color:#667085;font-size:12px}
+  .status-dot::before{content:"";width:8px;height:8px;border-radius:50%;background:#4bb38a;box-shadow:0 0 0 4px rgba(75,179,138,.12)}
+  .warn{background:var(--danger-bg);border:1px solid var(--danger-line);padding:12px 14px;border-radius:13px;margin:16px 0 0;font-size:13px;color:#7a4b09}
+  .warn div{margin:3px 0}
+  .tips{
+    margin-top:22px;background:linear-gradient(135deg,#eef7ff,#f7fbff);border:1px solid #d8e9f8;border-radius:20px;
+    padding:20px 22px;color:#44566c;font-size:13px
+  }
+  .tips strong{display:block;color:#1e4e78;font-size:14px;margin-bottom:4px}
+  footer{max-width:1180px;margin:0 auto;padding:0 20px 34px;text-align:center;color:#8a95a5;font-size:11px;line-height:1.7}
+  .footer-line{width:50px;height:3px;border-radius:999px;background:#d7e4f0;margin:0 auto 14px}
+  @media (max-width:900px){
+    .workspace{grid-template-columns:1fr}
+    #out{min-height:390px}
+  }
+  @media (max-width:620px){
+    .hero{padding:38px 16px 68px}
+    .eyebrow{margin-top:24px}
+    main{padding:0 12px 30px;margin-top:-34px}
+    .card{border-radius:19px}
+    .card-head{padding:20px 18px 15px}
+    .card-body{padding:18px}
+    .card-desc{margin-left:0;margin-top:8px}
+    .controls,.provider-model{grid-template-columns:1fr}
+    .field.wide{grid-column:auto}
+    #req{min-height:270px}
+    #out{min-height:360px}
+    .actions{align-items:flex-start;flex-direction:column}
+    .actions button{width:100%}
+    .flash{width:100%}
+  }
 </style>
 </head>
 <body>
-<main>
-  <h1>공문 기안문 작성기</h1>
-  <p class="hint">한 줄로 요청하면 AI가 기안문 초안을 씁니다. 항목(제목, 일시, 장소, 대상, 내용, 협조사항, 문의, 붙임)을 한 줄씩 적으면 AI 없이 바로 기안문을 만듭니다. 두문·결문은 넣지 않습니다. AI 요청은 선택한 AI 서비스로 전송되므로 개인정보는 넣지 마세요.</p>
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="brand"><span class="brand-mark">文</span> 공문 기안문 작성기</div>
+      <div class="eyebrow">AI · 행정업무 도우미</div>
+      <h1>공문 초안,<br>이제 더 빠르고 깔끔하게.</h1>
+      <p>한 줄 요청만 입력하거나 제목·일시·장소·대상 등을 항목별로 적어 보세요. 공문서 작성 기준에 맞춰 초안을 정리하고 바로 복사할 수 있습니다.</p>
+      <div class="hero-points"><span>✓ 두문·결문 자동 제외</span><span>✓ 날짜·시간·금액 표기 정리</span><span>✓ Gemini · Claude 지원</span></div>
+    </div>
+  </header>
 
-  <h2>요청</h2>
-  <textarea id="req" style="min-height:200px" placeholder="한 줄 요청 또는 항목별 입력&#10;예) 제목: ...&#10;일시: ...&#10;장소: ...&#10;대상: ...&#10;내용: ...&#10;협조사항: 항목1; 항목2&#10;문의: ...&#10;붙임: ..."></textarea>
-  <div class="row">
-    <label for="kw">공문핵심용어</label>
-    <select id="kw">
-      <option value="">없음</option>
-      <option>제출</option>
-      <option>협조</option>
-      <option>설문</option>
-      <option>출장</option>
-      <option>연수</option>
-      <option>공모</option>
-    </select>
-  </div>
-  <div class="row">
-    <label for="provider">AI 제공자</label>
-    <select id="provider">
-      <option value="google">Google Gemini (구글 API 키)</option>
-      <option value="anthropic">Anthropic Claude</option>
-    </select>
-    <label for="model">모델</label>
-    <input id="model" type="text" style="flex:1;min-width:180px;padding:6px;font-size:14px">
-  </div>
-  <div class="row">
-    <label for="apikey">API 키</label>
-    <input id="apikey" type="password" placeholder="API 키 붙여넣기" style="flex:1;min-width:220px;padding:6px;font-size:14px">
-  </div>
-  <div class="row">
-    <button id="ai">기안문 만들기</button>
-    <span id="aistatus" class="flash"></span>
-  </div>
+  <main>
+    <div class="workspace">
+      <section class="card">
+        <div class="card-head">
+          <h2 class="card-title"><span class="num">01</span> 요청 입력</h2>
+          <p class="card-desc">주제 한 줄 또는 알고 있는 정보를 항목별로 입력해 주세요.</p>
+        </div>
+        <div class="card-body">
+          <label class="field-label" for="req"><span>공문 내용</span><small>개인정보 입력 금지</small></label>
+          <textarea id="req" placeholder="한 줄 요청 또는 항목별 입력&#10;예) 제목: ...&#10;일시: ...&#10;장소: ...&#10;대상: ...&#10;내용: ...&#10;협조사항: 항목1; 항목2&#10;문의: ...&#10;붙임: ..."></textarea>
 
-  <div id="warnings"></div>
+          <div class="controls">
+            <div class="field">
+              <label class="field-label" for="kw">공문 핵심용어</label>
+              <select id="kw">
+                <option value="">없음</option>
+                <option>제출</option><option>협조</option><option>설문</option><option>출장</option><option>연수</option><option>공모</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="field-label">AI 설정</label>
+              <div class="provider-model">
+                <select id="provider" aria-label="AI 제공자">
+                  <option value="google">Google Gemini</option>
+                  <option value="anthropic">Anthropic Claude</option>
+                </select>
+                <input id="model" type="text" aria-label="AI 모델">
+              </div>
+            </div>
+            <div class="field wide">
+              <label class="field-label" for="apikey"><span>API 키</span><small>브라우저에 저장됩니다</small></label>
+              <div class="key-wrap"><input id="apikey" type="password" placeholder="API 키를 붙여넣어 주세요"></div>
+            </div>
+          </div>
 
-  <h2>미리보기</h2>
-  <textarea id="out" readonly></textarea>
-  <div class="row">
-    <button id="copy" class="sub">복사</button>
-    <span id="flash" class="flash"></span>
-  </div>
+          <div class="privacy"><span class="privacy-icon">🔒</span><div><strong>개인정보를 입력하지 마세요.</strong><br>AI 요청은 선택한 AI 서비스로 전송됩니다. 이름·연락처·주민등록번호 등 비공개 정보는 자리표시로 입력해 주세요.</div></div>
 
-  <footer>기준: 국립국어원 「쉬운 공문서 쓰기 길잡이」, 전라북도교육청 「공문서 쉽고 바르게 쓰기」(사례 1~5 포함), 경기도교육청 「한 곳에 정리한 공문서 작성법」, 공문서 작성 지침과 규정 요약(개인 참고용). 두문·결문은 전자문서시스템이 처리하므로 출력하지 않습니다.</footer>
-</main>
+          <div class="actions">
+            <button id="ai">✨ 기안문 만들기</button>
+            <span id="aistatus" class="flash"></span>
+          </div>
+          <div id="warnings"></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-head">
+          <h2 class="card-title"><span class="num">02</span> 미리보기</h2>
+          <p class="card-desc">생성된 문안을 확인한 뒤 K-에듀파인 또는 한글 문서에 붙여넣으세요.</p>
+        </div>
+        <div class="card-body">
+          <div class="preview-toolbar"><span class="status-dot">공문 형식 자동 정리</span></div>
+          <textarea id="out" readonly placeholder="기안문을 만들면 이곳에 결과가 표시됩니다."></textarea>
+          <div class="actions">
+            <button id="copy" class="sub">📋 전체 복사</button>
+            <span id="flash" class="flash"></span>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="tips"><strong>사용 팁</strong>제목·일시·장소·대상·내용처럼 알고 있는 정보를 많이 적을수록 수정할 부분이 줄어듭니다. 항목별 입력이 충분하면 AI를 호출하지 않고도 바로 기안문을 만들 수 있습니다.</div>
+  </main>
+
+  <footer><div class="footer-line"></div>기준: 국립국어원 「쉬운 공문서 쓰기 길잡이」, 전라북도교육청 「공문서 쉽고 바르게 쓰기」(사례 1~5 포함), 경기도교육청 「한 곳에 정리한 공문서 작성법」, 공문서 작성 지침과 규정 요약(개인 참고용). 두문·결문은 전자문서시스템이 처리하므로 출력하지 않습니다.</footer>
 
 <script>
 (function(){
   const KO = '가나다라마바사아자차카타파하';
   const SD = '일이삼사오육칠팔구';
 
-  // 항목 기호 체계: 1. → 가. → 1) → 가) → (1) → (가) → ① → ㉮
   const LV = [
     {re:/^(\d{1,2})\.(?!\d)\s*/,   fmt:n=>n+'.'},
     {re:/^([가-하])\.\s*/,          fmt:n=>KO[n-1]+'.'},
@@ -91,7 +246,6 @@
 
   const p2 = n => String(n).padStart(2, '0');
 
-  // 한글 금액 표기 (예: 345000 → 삼십사만오천)
   function sec(n){
     let s = '';
     const units = [[1000,'천'],[100,'백'],[10,'십']];
@@ -118,7 +272,6 @@
     return p2(H);
   }
 
-  // 어려운 한자어·외래어 순화, 고압적 표현 (전라북도교육청 「공문서 쉽고 바르게 쓰기」 사례 1~5)
   const DICT = [
     [/워크샵/g, '워크숍'], [/비젼/g, '비전'], [/익일/g, '다음날'], [/금번/g, '이번'],
     [/제고를 위한/g, '높이기 위한'], [/상이한/g, '다른'], [/일자:/g, '일시:'],
@@ -128,10 +281,9 @@
     [/미리 예측/g, '예측'], [/반드시 필요/g, '필요'], [/새로 신설/g, '신설'], [/2월달/g, '2월'], [/여러 가지 종류/g, '여러 가지'], [/피해를 입다/g, '피해를 보다'],
     [/의거함/g, '따름'], [/만전을 기해/g, '최선을 다해'], [/금일/g, '오늘'], [/향후/g, '앞으로'], [/위치한/g, '있는'], [/에 있어서/g, '에서'],
     [/마일리지/g, '이용 실적'], [/모니터링/g, '실태 조사'], [/옴부즈맨/g, '민원 도우미'], [/스크린도어/g, '안전문'], [/블랙아웃/g, '대정전'], [/노미네이트/g, '후보 지명'],
-    [/(?<!\()MOU(?!\))/g, '업무 협약(MOU)'], [/(-\d+)호\(/g, '$1('] // 관련 문서번호 뒤 '호' 생략
+    [/(?<!\()MOU(?!\))/g, '업무 협약(MOU)'], [/(-\d+)호\(/g, '$1(']
   ];
 
-  // 날짜 표기: 2026. 9. 16. + 요일(없을 때만 자동 계산)
   function fmtDate(y, m, d, full, off, str){
     const rest = str.slice(off + full.length);
     let out = `${y}. ${+m}. ${+d}.`;
@@ -144,27 +296,22 @@
 
   function normalize(s){
     for (const [re, to] of DICT) s = s.replace(re, to);
-    // 날짜: 2026년 9월 16일 / 2026.9.16 → 2026. 9. 16.
     s = s.replace(/(\d{4})\s*년\s*(\d{1,2})\s*월\s*(\d{1,2})\s*일/g,
       (full, y, m, d, off, str) => fmtDate(y, m, d, full, off, str));
     s = s.replace(/(\d{4})\s*\.\s*(\d{1,2})\s*\.\s*(\d{1,2})\s*\.?/g,
       (full, y, m, d, off, str) => fmtDate(y, m, d, full, off, str));
 
-    // 시간 범위: 오후 2시~4시 → 14:00~16:00
     s = s.replace(/(오전|오후)\s*(\d{1,2})시(?:\s*(\d{1,2})분)?\s*~\s*(\d{1,2})시(?:\s*(\d{1,2})분)?/g,
       (_, ap, h1, m1, h2, m2) => `${conv(ap,h1)}:${p2(+(m1||0))}∼${conv(ap,h2)}:${p2(+(m2||0))}`);
-    // 단일 시간: 오후 3시 20분 → 15:20
     s = s.replace(/(오전|오후)\s*(\d{1,2})시(?:\s*(\d{1,2})분)?(?!간)/g,
       (_, ap, h, m) => `${conv(ap,h)}:${p2(+(m||0))}`);
 
-    // 금액: 345,000원 → 345,000원(금삼십사만오천원)
     s = s.replace(/(?<![\d,])(금)?(\d{1,3}(?:,\d{3})+|\d+)원(?!\s*\()/g, (m, _g, num) => {
       const n = parseInt(num.replace(/,/g, ''), 10);
       if (!n || n >= 1e13) return m;
       return '금' + num + '원(금' + koNum(n) + '원)';
     });
 
-    // 물결표는 앞뒤에 붙임
     s = s.replace(/\s*~\s*/g, '∼');
     return s.trim();
   }
@@ -179,7 +326,7 @@
     for (const raw of src.split(/\r?\n/)){
       let t = raw.trim();
       if (!t){ items.push({blank:true}); continue; }
-      t = t.replace(/\s*끝\.?$/, ''); // AI가 붙여 쓴 끝 표시는 아래에서 한 번만 붙인다
+      t = t.replace(/\s*끝\.?$/, '');
 
       let m;
       if ((m = t.match(/^제목\s*[:：]?\s+(.*)$|^제목\s*[:：]\s*(.*)$/))){ title = normalize((m[1] || m[2] || '').trim()); continue; }
@@ -189,7 +336,6 @@
         if (a) att.push(normalize(a));
         continue;
       }
-      // 붙임 다음 줄의 "2. …" 는 붙임 항목으로 본다
       if (inAtt && (m = t.match(/^\d{1,2}\.\s*(.+)$/))){ att.push(normalize(m[1])); continue; }
 
       let lv = 0, text = t;
@@ -215,14 +361,13 @@
     }
     const body = items.filter(x => !x.drop);
 
-    // 항목이 하나뿐이면 항목기호를 붙이지 않음
     const marked = body.filter(x => !x.blank && x.lv > 0);
     if (marked.length === 1) marked[0].lv = 0;
 
     const out = [];
     const cnt = [0,0,0,0,0,0,0,0,0];
     out.push('제목　' + (kw ? `[${kw}] ` : '') + title);
-    if (body.some(x => !x.blank)) out.push(''); // 제목 다음 빈 줄
+    if (body.some(x => !x.blank)) out.push('');
 
     for (const x of body){
       if (x.blank){ if (out[out.length-1] !== '') out.push(''); continue; }
@@ -234,7 +379,6 @@
 
     while (out.length && out[out.length-1] === '') out.pop();
 
-    // 붙임: 하나면 번호 생략, 여러 개면 1. 2. …
     if (att.length === 1){
       out.push('붙임　' + att[0]);
     } else if (att.length > 1){
@@ -243,10 +387,8 @@
         : `　　　${i+1}. ${a}`));
     }
 
-    // 끝 표시: 마지막 글자 뒤 2타
     out[out.length-1] += '　끝.';
 
-    // 문체·용어 경고 (자동 수정하지 않고 사용자가 판단하도록 알려 줌)
     const STYLE = [
       {re:/할 것(?=[.\s]|$)/, msg:'"~할 것"은 고압적인 표현입니다. "~하시기 바랍니다"로 바꿔 보세요.'},
       {re:/에 대하여/, msg:'"~에 대하여"는 번역투일 수 있습니다. "~에 대한" 또는 "~에게"로 바꿔 보세요.'},
@@ -266,7 +408,6 @@
       if (/^\s*[-–]?\s*(다\s*음|아래)\s*[-–]?\s*$/.test(raw)) addWarn('"다음", "아래" 같은 표제는 쓰지 않고 바로 세부내용을 쓰세요.');
     }
 
-    // 개인정보 경고 (개인 용도라도 외부 AI에 넘기기 전 확인용)
     if (/\d{6}-?[1-4]\d{6}/.test(src)) warnings.push('주민등록번호로 보이는 값이 있습니다.');
     if (/0\d{1,2}-\d{3,4}-\d{4}/.test(src)) warnings.push('전화번호로 보이는 값이 있습니다.');
     if (/[\w.+-]+@[\w-]+\.[\w.]+/.test(src)) warnings.push('이메일 주소로 보이는 값이 있습니다.');
@@ -274,8 +415,6 @@
     return {text: out.join('\n'), warnings};
   }
 
-
-  // AI 초안 지침 (공문서 작성 지침 + 규정 요약, 출력은 일반 텍스트)
   const SYSTEM_LINES = [
     '당신은 대한민국 학교·행정기관의 공문서(기안문) 작성 전문가입니다.',
     '사용자가 주제만 짧게 입력해도 되묻지 말고 바로 완성된 공문 초안을 작성합니다.',
@@ -320,7 +459,6 @@
   ];
   const SYSTEM = SYSTEM_LINES.join('\n');
 
-  // API 키에서 공백·한글·전각 문자 등 영문·숫자·기호 외의 글자를 제거한다 (헤더에는 ASCII만 들어갈 수 있음)
   function cleanKey(s){
     return (s || '').replace(/[^\x21-\x7E]/g, '');
   }
@@ -330,7 +468,6 @@
     anthropic: {label:'Anthropic Claude', model:'claude-haiku-5-5', keyName:'gian_key_anthropic'}
   };
 
-  // 제공자별 호출: 같은 지침(SYSTEM)과 요청(req)을 보내고 본문 텍스트만 돌려준다
   async function callAI(provider, key, model, req){
     if (provider === 'google'){
       const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(model) + ':generateContent';
@@ -339,7 +476,6 @@
         contents: [{role: 'user', parts: [{text: req}]}],
         generationConfig: {maxOutputTokens: 1500}
       });
-      // 일시적 과부하(429/503)는 몇 번 다시 시도한다
       let res;
       for (let attempt = 0; attempt < 4; attempt++){
         res = await fetch(url, {
@@ -379,7 +515,6 @@
     return (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n').trim();
   }
 
-  // 항목 입력(제목:, 일시:, 장소: …)을 그대로 기안문 본문으로 배치한다. 항목이 2개 미만이면 null.
   function directDraft(req){
     const FIELD = /^(제목|관련|목적|일시|장소|대상|내용|협조사항|문의|담당|붙임)\s*[:：]\s*(.*)$/;
     const f = {}, free = [], att = [];
@@ -399,7 +534,6 @@
     }
     if (n < 2) return null;
 
-    // 1. 관련 → 인사말·문장 → 목적 순으로 첫째 항목을 만든다
     const lvl1 = [];
     if (f['관련']) lvl1.push('관련: ' + f['관련']);
     free.forEach(x => lvl1.push(x));
@@ -409,7 +543,6 @@
     out.push('');
     lvl1.forEach((x, i) => out.push((i + 1) + '. ' + x));
 
-    // 가. 나. 다. … 세부 항목
     const sub = [];
     if (f['일시']) sub.push(['일시: ' + f['일시']]);
     if (f['장소']) sub.push(['장소: ' + f['장소']]);
@@ -429,7 +562,6 @@
       if (item[1]) item[1].forEach((x, j) => out.push('    ' + (j + 1) + ') ' + x));
     });
 
-    // 붙임: 한 건이면 번호 없이, 여러 건이면 buildDoc이 1. 2. 로 나눈다
     att.forEach(a => out.push('붙임 ' + a));
     return out.join('\n');
   }
