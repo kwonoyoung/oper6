@@ -93,12 +93,7 @@
     let s = '';
     if (n >= 1e12){ s += koNum(Math.floor(n/1e12)) + '조'; n %= 1e12; }
     if (n >= 1e8){  s += koNum(Math.floor(n/1e8))  + '억'; n %= 1e8; }
-    if (n >= 1e4){
-      // 규정 예시 준용: 만 단위 수가 10~19이면 '일십일만'처럼 '일'을 붙인다 (금일십일만삼천오백육십원)
-      const q = Math.floor(n/1e4);
-      s += (q >= 10 && q < 20 ? '일' + sec(q) : koNum(q)) + '만';
-      n %= 1e4;
-    }
+    if (n >= 1e4){  s += koNum(Math.floor(n/1e4))  + '만'; n %= 1e4; }
     if (n > 0) s += sec(n);
     return s;
   }
