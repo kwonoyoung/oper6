@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>공문 기안문 정리</title>
+<style>
+  body{font-family:"Malgun Gothic","맑은 고딕",sans-serif;margin:0;padding:16px;background:#f5f6f8;color:#222;line-height:1.5}
+  main{max-width:860px;margin:0 auto}
+  h1{font-size:20px;margin:8px 0 12px}
+  h2{font-size:15px;margin:18px 0 6px}
+  textarea{width:100%;box-sizing:border-box;min-height:220px;font:14px/1.6 "Malgun Gothic",sans-serif;padding:10px;border:1px solid #bbb;border-radius:6px;background:#fff}
+  #out{min-height:260px;font-family:"Batang","바탕",serif;font-size:15px;line-height:1.7}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0}
+  button{padding:8px 14px;border:0;border-radius:6px;background:#2d5fa8;color:#fff;cursor:pointer;font-size:14px}
+  button.sub{background:#6b7280}
+  select{padding:6px;font-size:14px;border-radius:4px}
+  .warn{background:#fff4e5;border:1px solid #f0b35b;padding:8px 12px;border-radius:6px;margin:8px 0;font-size:14px}
+  .warn div{margin:2px 0}
+  .hint{font-size:13px;color:#555}
+  .flash{font-size:13px;color:#2d5fa8;min-height:18px}
+  footer{font-size:12px;color:#777;margin:20px 0}
+  @media (max-width:600px){body{padding:12px}}
+</style>
+</head>
+<body>
+<main>
+  <h1>공문 기안문 정리</h1>
+  <p class="hint">두문·결문은 빼고, 제목부터 "끝."까지 공문 형식으로 정리합니다. 항목 기호와 들여쓰기, 날짜·시간·금액 표기, 붙임, 끝 표시를 자동으로 맞춥니다. 모든 처리는 이 브라우저 안에서만 이루어지며 외부로 전송되지 않습니다.</p>
+
+  <h2>원고</h2>
+  <textarea id="src" spellcheck="false"></textarea>
+  <p class="hint">첫 줄은 <b>제목: …</b>으로 쓰세요. 항목은 <b>1. / 가. / 1) / 가) / (1) / (가) / ① / ㉮</b> 기호를 직접 써 두면 번호를 다시 매깁니다. <b>붙임 …</b> 줄은 붙임으로 처리합니다.</p>
+
+  <div class="row">
+    <label for="kw">공문핵심용어</label>
+    <select id="kw">
+      <option value="">없음</option>
+      <option>제출</option>
+      <option>협조</option>
+      <option>설문</option>
+      <option>출장</option>
+      <option>연수</option>
+      <option>공모</option>
+    </select>
+    <button id="run">정리하기</button>
+  </div>
+
+  <div id="warnings"></div>
+
+  <h2>결과</h2>
+  <textarea id="out" readonly></textarea>
+  <div class="row">
+    <button id="copy" class="sub">복사</button>
+    <span id="flash" class="flash"></span>
+  </div>
+
+  <footer>기준: 국립국어원 「쉬운 공문서 쓰기 길잡이」, 전라북도교육청 「공문서 쉽고 바르게 쓰기」, 경기도교육청 「한 곳에 정리한 공문서 작성법」. 띄어쓰기·맞춤법·문장 다듬기는 이 페이지가 처리하지 않습니다.</footer>
+</main>
+
+<script>
+(function(){
+  const KO = '가나다라마바사아자차카타파하';
+  const SD = '일이삼사오육칠팔구';
+
+  // 항목 기호 체계: 1. → 가. → 1) → 가) → (1) → (가) → ① → ㉮
+  const LV = [
+    {re:/^(\d{1,2})\.(?!\d)\s*/,   fmt:n=>n+'.'},
+    {re:/^([가-하])\.\s*/,          fmt:n=>KO[n-1]+'.'},
+    {re:/^(\d{1,2})\)\s*/,          fmt:n=>n+')'},
+    {re:/^([가-하])\)\s*/,          fmt:n=>KO[n-1]+')'},
+    {re:/^\((\d{1,2})\)\s*/,        fmt:n=>'('+n+')'},
+    {re:/^\(([가-하])\)\s*/,        fmt:n=>'('+KO[n-1]+')'},
+    {re:/^([①-⑳])\s*/,             fmt:n=>String.fromCharCode(0x2460+n-1)},
+    {re:/^([㉮-㉯])\s*/,             fmt:n=>String.fromCharCode(0x326E+n-1)}
+  ];
+
+  const p2 = n => String(n).padStart(2, '0');
+
+  // 한글 금액 표기 (예: 345000 → 삼십사만오천)
+  function sec(n){
+    let s = '';
+    const units = [[1000,'천'],[100,'백'],[10,'십']];
+    for (const [p, name] of units){
+      const d = Math.floor(n / p) % 10;
+      if (d) s += (d > 1 ? SD[d-1] : '') + name;
+    }
+    const r = n % 10;
+    if (r) s += SD[r-1];
+    return s;
+  }
+  function koNum(n){
+    let s = '';
+    if (n >= 1e12){ s += koNum(Math.floor(n/1e12)) + '조'; n %= 1e12; }
+    if (n >= 1e8){  s += koNum(Math.floor(n/1e8))  + '억'; n %= 1e8; }
+    if (n >= 1e4){  s += koNum(Math.floor(n/1e4))  + '만'; n %= 1e4; }
+    if (n > 0) s += sec(n);
+    return s;
+  }
+
+  function conv(ap, h){
+    let H = (+h) % 12;
+    if (ap === '오후') H += 12;
+    return p2(H);
+  }
+
+  function normalize(s){
+    // 날짜: 2026년 9월 16일 / 2026.9.16 → 2026. 9. 16.
+    s = s.replace(/(\d{4})\s*년\s*(\d{1,2})\s*월\s*(\d{1,2})\s*일/g,
+      (_, y, m, d) => `${y}. ${+m}. ${+d}.`);
+    s = s.replace(/(\d{4})\s*\.\s*(\d{1,2})\s*\.\s*(\d{1,2})\s*\.?/g,
+      (_, y, m, d) => `${y}. ${+m}. ${+d}.`);
+
+    // 시간 범위: 오후 2시~4시 → 14:00~16:00
+    s = s.replace(/(오전|오후)\s*(\d{1,2})시(?:\s*(\d{1,2})분)?\s*~\s*(\d{1,2})시(?:\s*(\d{1,2})분)?/g,
+      (_, ap, h1, m1, h2, m2) => `${conv(ap,h1)}:${p2(+(m1||0))}~${conv(ap,h2)}:${p2(+(m2||0))}`);
+    // 단일 시간: 오후 3시 20분 → 15:20
+    s = s.replace(/(오전|오후)\s*(\d{1,2})시(?:\s*(\d{1,2})분)?(?!간)/g,
+      (_, ap, h, m) => `${conv(ap,h)}:${p2(+(m||0))}`);
+
+    // 금액: 345,000원 → 345,000원(금삼십사만오천원)
+    s = s.replace(/(\d{1,3}(?:,\d{3})+|\d+)원(?!\s*\()/g, (m, num) => {
+      const n = parseInt(num.replace(/,/g, ''), 10);
+      if (!n || n >= 1e13) return m;
+      return num + '원(금' + koNum(n) + '원)';
+    });
+
+    // 물결표는 앞뒤에 붙임
+    s = s.replace(/\s*~\s*/g, '~');
+    return s.trim();
+  }
+
+  function buildDoc(src, kw){
+    const warnings = [];
+    let title = '';
+    const items = [];
+    const att = [];
+
+    let inAtt = false;
+    for (const raw of src.split(/\r?\n/)){
+      const t = raw.trim();
+      if (!t){ items.push({blank:true}); continue; }
+
+      let m;
+      if ((m = t.match(/^제목\s*[:：]\s*(.*)$/))){ title = normalize(m[1]); continue; }
+      if ((m = t.match(/^붙임\s*[:：]?\s*(.*)$/))){
+        inAtt = true;
+        const a = m[1].replace(/^\d{1,2}\.\s*/, '');
+        if (a) att.push(normalize(a));
+        continue;
+      }
+      // 붙임 다음 줄의 "2. …" 는 붙임 항목으로 본다
+      if (inAtt && (m = t.match(/^\d{1,2}\.\s*(.+)$/))){ att.push(normalize(m[1])); continue; }
+
+      let lv = 0, text = t;
+      for (let i = 0; i < LV.length; i++){
+        const mm = t.match(LV[i].re);
+        if (mm){ lv = i + 1; text = t.slice(mm[0].length); break; }
+      }
+      items.push({lv, text: normalize(text)});
+    }
+
+    while (items.length && items[items.length-1].blank) items.pop();
+    while (items.length && items[0].blank) items.shift();
+
+    if (!title){
+      const first = items.find(x => !x.blank);
+      if (first){
+        title = first.text;
+        first.drop = true;
+        warnings.push('"제목:" 줄이 없어 첫 줄을 제목으로 썼습니다.');
+      } else {
+        warnings.push('제목이 없습니다. "제목: …" 줄을 넣어 주세요.');
+      }
+    }
+    const body = items.filter(x => !x.drop);
+
+    // 항목이 하나뿐이면 항목기호를 붙이지 않음
+    const marked = body.filter(x => !x.blank && x.lv > 0);
+    if (marked.length === 1) marked[0].lv = 0;
+
+    const out = [];
+    const cnt = [0,0,0,0,0,0,0,0,0];
+    out.push('제목　' + (kw ? `[${kw}] ` : '') + title);
+
+    for (const x of body){
+      if (x.blank){ if (out[out.length-1] !== '') out.push(''); continue; }
+      if (x.lv === 0){ out.push(x.text); continue; }
+      cnt[x.lv]++;
+      for (let k = x.lv + 1; k < 9; k++) cnt[k] = 0;
+      out.push('　'.repeat(x.lv - 1) + LV[x.lv-1].fmt(cnt[x.lv]) + ' ' + x.text);
+    }
+
+    while (out.length && out[out.length-1] === '') out.pop();
+
+    // 붙임: 하나면 번호 생략, 여러 개면 1. 2. …
+    if (att.length === 1){
+      out.push('붙임　' + att[0]);
+    } else if (att.length > 1){
+      att.forEach((a, i) => out.push(i === 0
+        ? `붙임　${i+1}. ${a}`
+        : `　　　${i+1}. ${a}`));
+    }
+
+    // 끝 표시: 마지막 글자 뒤 2타
+    out[out.length-1] += '　끝.';
+
+    // 개인정보 경고 (개인 용도라도 외부 AI에 넘기기 전 확인용)
+    if (/\d{6}-?[1-4]\d{6}/.test(src)) warnings.push('주민등록번호로 보이는 값이 있습니다.');
+    if (/0\d{1,2}-\d{3,4}-\d{4}/.test(src)) warnings.push('전화번호로 보이는 값이 있습니다.');
+    if (/[\w.+-]+@[\w-]+\.[\w.]+/.test(src)) warnings.push('이메일 주소로 보이는 값이 있습니다.');
+
+    return {text: out.join('\n'), warnings};
+  }
+
+  function init(){
+    const $ = id => document.getElementById(id);
+    $('src').value = [
+      '제목: 학교폭력 예방교육 실시 안내',
+      '다음과 같이 학교폭력 예방교육을 실시하오니 참석하여 주시기 바랍니다.',
+      '1. 일시: 2026년 9월 16일(수) 오후 2시~4시',
+      '2. 장소: 본교 시청각실',
+      '   가. 참석 대상: 전교생 학부모',
+      '3. 담당: 교육활동부',
+      '붙임 예방교육 계획서 1부.'
+    ].join('\n');
+
+    $('run').addEventListener('click', () => {
+      const r = buildDoc($('src').value, $('kw').value);
+      $('out').value = r.text;
+      $('warnings').innerHTML = '';
+      if (r.warnings.length){
+        const box = document.createElement('div');
+        box.className = 'warn';
+        r.warnings.forEach(w => { const d = document.createElement('div'); d.textContent = '· ' + w; box.appendChild(d); });
+        $('warnings').appendChild(box);
+      }
+    });
+
+    $('copy').addEventListener('click', async () => {
+      const ta = $('out');
+      try {
+        if (navigator.clipboard && window.isSecureContext){
+          await navigator.clipboard.writeText(ta.value);
+        } else {
+          ta.removeAttribute('readonly'); ta.select(); document.execCommand('copy'); ta.setAttribute('readonly','');
+        }
+        $('flash').textContent = '복사했습니다.';
+      } catch (e) {
+        ta.select();
+        $('flash').textContent = '직접 선택해 복사해 주세요.';
+      }
+    });
+
+    $('run').click();
+  }
+
+  if (typeof document !== 'undefined' && document.getElementById('src')) init();
+  if (typeof module !== 'undefined') module.exports = {buildDoc, normalize, koNum};
+})();
+</script>
+</body>
+</html>
