@@ -75,7 +75,7 @@
   textarea:focus,input:focus,select:focus{border-color:#8ab0ff;box-shadow:0 0 0 4px rgba(91,141,239,.1)}
   input:disabled{background:#f4f5f7;color:#a2a7af;cursor:not-allowed}
   #req{min-height:310px;background:#fcfcfd}
-  #out{min-height:522px;font-family:"Batang","바탕",serif;font-size:15px;line-height:1.82;background:#fcfcfd}
+  #out{min-height:522px;font-size:15px;line-height:1.82;background:#fcfcfd}
   .keyword-control{display:grid;grid-template-columns:170px 1fr;gap:10px;align-items:center}
   .privacy{display:flex;gap:11px;align-items:flex-start;margin-top:15px;padding:13px 14px;border-radius:16px;background:#fff9dc;color:#6f672c;font-size:12px}
   .privacy-icon{width:28px;height:28px;border-radius:10px;background:#fff0a0;display:grid;place-items:center;flex:0 0 auto}
@@ -83,6 +83,7 @@
   button{min-height:48px;padding:0 21px;border:0;border-radius:15px;cursor:pointer;font-weight:900;transition:.16s transform,.16s box-shadow,.16s opacity}
   button:hover{transform:translateY(-1px)}button:active{transform:none}button:disabled{opacity:.55;cursor:not-allowed;transform:none}
   #ai{background:#1b1e23;color:#fff;box-shadow:0 10px 20px rgba(20,24,32,.14)}
+  #reset{background:#eef0f3;color:#4b525c;border:1px solid #e0e3e7}
   button.sub{background:var(--yellow);color:#24210f}
   .flash{font-size:12px;color:#5b6572;font-weight:700;min-height:18px}
   .preview-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
@@ -145,7 +146,7 @@
               <input id="kw-custom" type="text" placeholder="제목핵심용어 입력" disabled>
             </div>
 
-            <div class="actions"><button id="ai">기안문 생성</button><span id="aistatus" class="flash"></span></div>
+            <div class="actions"><button id="ai">기안문 생성</button><button id="reset" type="button">재작성</button><span id="aistatus" class="flash"></span></div>
             <div id="warnings"></div>
           </div>
         </section>
@@ -613,6 +614,11 @@
     $('provider').addEventListener('change', loadProvider);
     loadProvider();
     $('ai').addEventListener('click', aiDraft);
+    $('reset').addEventListener('click', () => {
+      $('req').value = '';
+      $('aistatus').textContent = '';
+      $('req').focus();
+    });
 
     $('copy').addEventListener('click', async () => {
       const ta = $('out');
