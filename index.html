@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>공문 기안문 정리</title>
+<title>공문 기안문 작성기</title>
 <style>
   body{font-family:"Malgun Gothic","맑은 고딕",sans-serif;margin:0;padding:16px;background:#f5f6f8;color:#222;line-height:1.5}
   main{max-width:860px;margin:0 auto}
@@ -25,23 +25,11 @@
 </head>
 <body>
 <main>
-  <h1>공문 기안문 정리</h1>
-  <p class="hint">두문·결문은 빼고, 제목부터 "끝."까지 공문 형식으로 정리합니다. 항목 기호와 들여쓰기, 날짜·시간·금액 표기, 붙임, 끝 표시를 자동으로 맞춥니다. 모든 처리는 이 브라우저 안에서만 이루어지며 외부로 전송되지 않습니다.</p>
+  <h1>공문 기안문 작성기</h1>
+  <p class="hint">요청을 한 줄 쓰면 AI가 기안문 초안을 쓰고, 날짜·항목 기호·끝 표시 등 공문 형식을 맞춰 미리 보여 줍니다. 두문·결문은 넣지 않습니다. 요청은 Anthropic API로 전송되므로 개인정보는 넣지 마세요.</p>
 
-  <h2>AI 초안 작성 (선택)</h2>
-  <p class="hint">요청을 한 줄로 쓰면 AI가 공문 초안을 만들고, 아래 규칙 처리로 날짜·기호·끝 표시를 정리합니다. 입력 내용은 Anthropic API로 전송되므로 개인정보는 넣지 마세요. API 키는 이 브라우저에만 저장됩니다.</p>
+  <h2>요청</h2>
   <textarea id="req" style="min-height:90px"></textarea>
-  <div class="row">
-    <label for="apikey">API 키</label>
-    <input id="apikey" type="password" placeholder="sk-ant-..." style="flex:1;min-width:220px;padding:6px;font-size:14px">
-    <button id="ai">AI로 초안 만들기</button>
-  </div>
-  <div id="aistatus" class="flash"></div>
-
-  <h2>원고</h2>
-  <textarea id="src" spellcheck="false"></textarea>
-  <p class="hint">첫 줄은 <b>제목: …</b>으로 쓰세요. 항목은 <b>1. / 가. / 1) / 가) / (1) / (가) / ① / ㉮</b> 기호를 직접 써 두면 번호를 다시 매깁니다. <b>붙임 …</b> 줄은 붙임으로 처리합니다.</p>
-
   <div class="row">
     <label for="kw">공문핵심용어</label>
     <select id="kw">
@@ -53,19 +41,26 @@
       <option>연수</option>
       <option>공모</option>
     </select>
-    <button id="run">정리하기</button>
+  </div>
+  <div class="row">
+    <label for="apikey">API 키</label>
+    <input id="apikey" type="password" placeholder="sk-ant-..." style="flex:1;min-width:220px;padding:6px;font-size:14px">
+  </div>
+  <div class="row">
+    <button id="ai">기안문 만들기</button>
+    <span id="aistatus" class="flash"></span>
   </div>
 
   <div id="warnings"></div>
 
-  <h2>결과</h2>
+  <h2>미리보기</h2>
   <textarea id="out" readonly></textarea>
   <div class="row">
     <button id="copy" class="sub">복사</button>
     <span id="flash" class="flash"></span>
   </div>
 
-  <footer>기준: 국립국어원 「쉬운 공문서 쓰기 길잡이」, 전라북도교육청 「공문서 쉽고 바르게 쓰기」(사례 1~5 포함), 경기도교육청 「한 곳에 정리한 공문서 작성법」, 공문서 작성 지침(개인 참고용). 띄어쓰기·맞춤법·문장 다듬기는 이 페이지가 처리하지 않습니다.</footer>
+  <footer>기준: 국립국어원 「쉬운 공문서 쓰기 길잡이」, 전라북도교육청 「공문서 쉽고 바르게 쓰기」(사례 1~5 포함), 경기도교육청 「한 곳에 정리한 공문서 작성법」, 공문서 작성 지침과 규정 요약(개인 참고용). 두문·결문은 전자문서시스템이 처리하므로 출력하지 않습니다.</footer>
 </main>
 
 <script>
@@ -349,9 +344,10 @@
       }
       let text = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n').trim();
       text = text.replace(/^```[a-z]*\s*/i, '').replace(/```\s*$/, '').trim();
-      $('src').value = text;
-      $('run').click();
-      st.textContent = '초안을 만들었습니다. 아래 원고를 확인하고 필요하면 고쳐 다시 정리하세요.';
+      const r = buildDoc(text, $('kw').value);
+      $('out').value = r.text;
+      renderWarnings(r.warnings);
+      st.textContent = '기안문을 만들었습니다. 미리보기를 확인한 뒤 복사하세요.';
     } catch (e) {
       st.textContent = '요청에 실패했습니다: ' + e.message;
     } finally {
@@ -359,36 +355,25 @@
     }
   }
 
+  function renderWarnings(list){
+    const box = document.getElementById('warnings');
+    box.innerHTML = '';
+    if (!list.length) return;
+    const wrap = document.createElement('div');
+    wrap.className = 'warn';
+    list.forEach(w => { const d = document.createElement('div'); d.textContent = '· ' + w; wrap.appendChild(d); });
+    box.appendChild(wrap);
+  }
+
   function init(){
     const $ = id => document.getElementById(id);
-    $('src').value = [
-      '제목: 학교폭력 예방교육 실시 안내',
-      '다음과 같이 학교폭력 예방교육을 실시하오니 참석하여 주시기 바랍니다.',
-      '1. 일시: 2026년 9월 16일(수) 오후 2시~4시',
-      '2. 장소: 본교 시청각실',
-      '   가. 참석 대상: 전교생 학부모',
-      '3. 담당: 교육활동부',
-      '붙임 예방교육 계획서 1부.'
-    ].join('\n');
-
     $('req').value = '9월 16일 오후 2시 본교 시청각실에서 전교생 학부모 대상 학교폭력 예방교육 안내 가정통신문 써줘. 담당은 교육활동부야.';
     try { const saved = localStorage.getItem('gian_api_key'); if (saved) $('apikey').value = saved; } catch (e) {}
     $('ai').addEventListener('click', aiDraft);
 
-    $('run').addEventListener('click', () => {
-      const r = buildDoc($('src').value, $('kw').value);
-      $('out').value = r.text;
-      $('warnings').innerHTML = '';
-      if (r.warnings.length){
-        const box = document.createElement('div');
-        box.className = 'warn';
-        r.warnings.forEach(w => { const d = document.createElement('div'); d.textContent = '· ' + w; box.appendChild(d); });
-        $('warnings').appendChild(box);
-      }
-    });
-
     $('copy').addEventListener('click', async () => {
       const ta = $('out');
+      if (!ta.value) { $('flash').textContent = '먼저 기안문을 만들어 주세요.'; return; }
       try {
         if (navigator.clipboard && window.isSecureContext){
           await navigator.clipboard.writeText(ta.value);
@@ -401,11 +386,9 @@
         $('flash').textContent = '직접 선택해 복사해 주세요.';
       }
     });
-
-    $('run').click();
   }
 
-  if (typeof document !== 'undefined' && document.getElementById('src')) init();
+  if (typeof document !== 'undefined' && document.getElementById('req')) init();
   if (typeof module !== 'undefined') module.exports = {buildDoc, normalize, koNum};
 })();
 </script>
