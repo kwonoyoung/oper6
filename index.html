@@ -28,6 +28,16 @@
   <h1>공문 기안문 정리</h1>
   <p class="hint">두문·결문은 빼고, 제목부터 "끝."까지 공문 형식으로 정리합니다. 항목 기호와 들여쓰기, 날짜·시간·금액 표기, 붙임, 끝 표시를 자동으로 맞춥니다. 모든 처리는 이 브라우저 안에서만 이루어지며 외부로 전송되지 않습니다.</p>
 
+  <h2>AI 초안 작성 (선택)</h2>
+  <p class="hint">요청을 한 줄로 쓰면 AI가 공문 초안을 만들고, 아래 규칙 처리로 날짜·기호·끝 표시를 정리합니다. 입력 내용은 Anthropic API로 전송되므로 개인정보는 넣지 마세요. API 키는 이 브라우저에만 저장됩니다.</p>
+  <textarea id="req" style="min-height:90px"></textarea>
+  <div class="row">
+    <label for="apikey">API 키</label>
+    <input id="apikey" type="password" placeholder="sk-ant-..." style="flex:1;min-width:220px;padding:6px;font-size:14px">
+    <button id="ai">AI로 초안 만들기</button>
+  </div>
+  <div id="aistatus" class="flash"></div>
+
   <h2>원고</h2>
   <textarea id="src" spellcheck="false"></textarea>
   <p class="hint">첫 줄은 <b>제목: …</b>으로 쓰세요. 항목은 <b>1. / 가. / 1) / 가) / (1) / (가) / ① / ㉮</b> 기호를 직접 써 두면 번호를 다시 매깁니다. <b>붙임 …</b> 줄은 붙임으로 처리합니다.</p>
@@ -117,13 +127,24 @@
     [/(?<!\()MOU(?!\))/g, '업무 협약(MOU)'], [/(-\d+)호\(/g, '$1('] // 관련 문서번호 뒤 '호' 생략
   ];
 
+  // 날짜 표기: 2026. 9. 16. + 요일(없을 때만 자동 계산)
+  function fmtDate(y, m, d, full, off, str){
+    const rest = str.slice(off + full.length);
+    let out = `${y}. ${+m}. ${+d}.`;
+    if (!/^\s*\(/.test(rest)){
+      const wd = '일월화수목금토'[new Date(+y, +m - 1, +d).getDay()];
+      out += `(${wd})`;
+    }
+    return out;
+  }
+
   function normalize(s){
     for (const [re, to] of DICT) s = s.replace(re, to);
     // 날짜: 2026년 9월 16일 / 2026.9.16 → 2026. 9. 16.
     s = s.replace(/(\d{4})\s*년\s*(\d{1,2})\s*월\s*(\d{1,2})\s*일/g,
-      (_, y, m, d) => `${y}. ${+m}. ${+d}.`);
+      (full, y, m, d, off, str) => fmtDate(y, m, d, full, off, str));
     s = s.replace(/(\d{4})\s*\.\s*(\d{1,2})\s*\.\s*(\d{1,2})\s*\.?/g,
-      (_, y, m, d) => `${y}. ${+m}. ${+d}.`);
+      (full, y, m, d, off, str) => fmtDate(y, m, d, full, off, str));
 
     // 시간 범위: 오후 2시~4시 → 14:00~16:00
     s = s.replace(/(오전|오후)\s*(\d{1,2})시(?:\s*(\d{1,2})분)?\s*~\s*(\d{1,2})시(?:\s*(\d{1,2})분)?/g,
@@ -152,11 +173,12 @@
 
     let inAtt = false;
     for (const raw of src.split(/\r?\n/)){
-      const t = raw.trim();
+      let t = raw.trim();
       if (!t){ items.push({blank:true}); continue; }
+      t = t.replace(/\s*끝\.?$/, ''); // AI가 붙여 쓴 끝 표시는 아래에서 한 번만 붙인다
 
       let m;
-      if ((m = t.match(/^제목\s*[:：]\s*(.*)$/))){ title = normalize(m[1]); continue; }
+      if ((m = t.match(/^제목\s*[:：]?\s+(.*)$|^제목\s*[:：]\s*(.*)$/))){ title = normalize((m[1] || m[2] || '').trim()); continue; }
       if ((m = t.match(/^붙임\s*[:：]?\s*(.*)$/))){
         inAtt = true;
         const a = m[1].replace(/^\d{1,2}\.\s*/, '');
@@ -196,6 +218,7 @@
     const out = [];
     const cnt = [0,0,0,0,0,0,0,0,0];
     out.push('제목　' + (kw ? `[${kw}] ` : '') + title);
+    if (body.some(x => !x.blank)) out.push(''); // 제목 다음 빈 줄
 
     for (const x of body){
       if (x.blank){ if (out[out.length-1] !== '') out.push(''); continue; }
@@ -247,6 +270,95 @@
     return {text: out.join('\n'), warnings};
   }
 
+
+  // AI 초안 지침 (공문서 작성 지침 + 규정 요약, 출력은 일반 텍스트)
+  const SYSTEM_LINES = [
+    '당신은 대한민국 학교·행정기관의 공문서(기안문) 작성 전문가입니다.',
+    '사용자가 주제만 짧게 입력해도 되묻지 말고 바로 완성된 공문 초안을 작성합니다.',
+    '부족한 정보는 상식적으로 채우고, 기관명·전화번호·종료 시각처럼 사용자만 아는 정보는 대괄호 자리표시 [ ]로 둡니다.',
+    '',
+    '[출력 형식]',
+    '1. 코드블록, 마크다운 기호(#, *, 목록 기호)를 쓰지 않고 순수 텍스트만 출력합니다.',
+    '2. 두문(수신, 경유)과 결문(발신명의)은 쓰지 않습니다. 제목부터 붙임까지만 씁니다.',
+    '3. 첫 줄은 "제목  (제목)" 형식입니다. 제목은 내용을 포괄하고, 한 문서에 한 안건만 담습니다.',
+    '4. 본문 첫 문장은 "학부모님의 가정에 평안이 가득하기를 기원합니다." 같은 인사말로 시작할 수 있고, 목적 문장은 "...실시하오니 ...바랍니다." 형태로 씁니다.',
+    '5. 항목 순서는 1. 가. 1) 가) (1) (가) 순서이며, 세부 내용은 일시, 장소, 대상, 내용, 협조사항, 문의 순으로 씁니다.',
+    '6. 항목 기호와 내용 사이는 한 칸, 하위 항목은 상위 항목보다 두 칸 오른쪽에 씁니다.',
+    '7. 붙임은 본문 끝난 다음 줄에 "붙임  (명칭) (수량)부." 형식으로 쓰고, 여러 건이면 1. 2.로 나눕니다.',
+    '8. 끝. 표시는 쓰지 않습니다(앱이 붙입니다).',
+    '',
+    '[표기 규칙]',
+    '- 날짜: 2026. 9. 16.(수) 처럼 연·월·일 글자 대신 마침표, 월·일 앞 0은 쓰지 않습니다. 요일은 날짜 뒤 괄호 안에 씁니다.',
+    '- 시간: 24시각제, 14:00∼16:00 처럼 쌍점과 물결표(∼)를 씁니다.',
+    '- 금액: 금113,560원(금십일만삼천오백육십원) 처럼 숫자 앞에 금을 붙이고 괄호 안에 한글을 씁니다.',
+    '- 법령·규정명은 「 」로 묶습니다.',
+    '- 문장 종결: 안내문은 "...하시기 바랍니다." "...알려드립니다." 처럼 부드러운 경어를 씁니다.',
+    '- 쓰지 않을 표현: "바람", "할 것", "필히", "엄금", "우리 기관", "교부합니다"(대신 "받으실 수 있습니다"), "금번", "익일", "제고".',
+    '- 중복 표현(미리 예측, 반드시 필요, 2월달 등)과 번역투(~에 대하여)를 피합니다.',
+    '- 외국어는 한글을 먼저 쓰고 괄호에 원어를 씁니다. 예: 업무 협약(MOU).',
+    '- 준말은 처음에 온전한 용어와 괄호로 씁니다. 예: 지방자치단체(이하 지자체).',
+    '',
+    '[출력 예시]',
+    '제목  학교폭력 예방교육 실시 안내',
+    '',
+    '1. 학부모님의 가정에 평안이 가득하기를 기원합니다.',
+    '2. 우리 학교에서는 학생들의 안전하고 평화로운 학교생활을 위하여 아래와 같이 전교생 학부모 대상 학교폭력 예방교육을 실시하오니, 많은 관심과 참석을 바랍니다.',
+    '  가. 일시: 2026. 9. 16.(수) 14:00∼[종료 시각]',
+    '  나. 장소: 본교 시청각실',
+    '  다. 대상: 전교생 학부모',
+    '  라. 내용: 학교폭력 유형별 예방 및 대처 방안, 학부모의 역할',
+    '  마. 협조사항',
+    '    1) 원활한 교육 진행을 위하여 13:50까지 입장 완료',
+    '    2) 교내 주차 공간이 협소하므로 가급적 대중교통 이용 권장',
+    '  바. 문의: 교육활동부(☎ [전화번호])',
+    '',
+    '붙임  학교폭력 예방교육 참가 신청서 1부.'
+  ];
+  const SYSTEM = SYSTEM_LINES.join('\n');
+
+  async function aiDraft(){
+    const $ = id => document.getElementById(id);
+    const req = $('req').value.trim();
+    const key = $('apikey').value.trim();
+    const st = $('aistatus');
+    if (!req){ st.textContent = '요청을 입력해 주세요.'; return; }
+    if (!key){ st.textContent = 'API 키를 입력해 주세요.'; return; }
+    try { localStorage.setItem('gian_api_key', key); } catch (e) {}
+    st.textContent = 'AI가 초안을 만드는 중입니다...';
+    $('ai').disabled = true;
+    try {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'x-api-key': key,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true'
+        },
+        body: JSON.stringify({
+          model: 'claude-haiku-5-5',
+          max_tokens: 1500,
+          system: SYSTEM,
+          messages: [{role: 'user', content: req}]
+        })
+      });
+      const data = await res.json();
+      if (!res.ok){
+        st.textContent = '오류: ' + ((data.error && data.error.message) || res.status);
+        return;
+      }
+      let text = (data.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n').trim();
+      text = text.replace(/^```[a-z]*\s*/i, '').replace(/```\s*$/, '').trim();
+      $('src').value = text;
+      $('run').click();
+      st.textContent = '초안을 만들었습니다. 아래 원고를 확인하고 필요하면 고쳐 다시 정리하세요.';
+    } catch (e) {
+      st.textContent = '요청에 실패했습니다: ' + e.message;
+    } finally {
+      $('ai').disabled = false;
+    }
+  }
+
   function init(){
     const $ = id => document.getElementById(id);
     $('src').value = [
@@ -258,6 +370,10 @@
       '3. 담당: 교육활동부',
       '붙임 예방교육 계획서 1부.'
     ].join('\n');
+
+    $('req').value = '9월 16일 오후 2시 본교 시청각실에서 전교생 학부모 대상 학교폭력 예방교육 안내 가정통신문 써줘. 담당은 교육활동부야.';
+    try { const saved = localStorage.getItem('gian_api_key'); if (saved) $('apikey').value = saved; } catch (e) {}
+    $('ai').addEventListener('click', aiDraft);
 
     $('run').addEventListener('click', () => {
       const r = buildDoc($('src').value, $('kw').value);
