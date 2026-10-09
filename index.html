@@ -334,15 +334,26 @@
   async function callAI(provider, key, model, req){
     if (provider === 'google'){
       const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(model) + ':generateContent';
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: {'content-type': 'application/json', 'x-goog-api-key': key},
-        body: JSON.stringify({
-          systemInstruction: {parts: [{text: SYSTEM}]},
-          contents: [{role: 'user', parts: [{text: req}]}],
-          generationConfig: {maxOutputTokens: 1500}
-        })
+      const body = JSON.stringify({
+        systemInstruction: {parts: [{text: SYSTEM}]},
+        contents: [{role: 'user', parts: [{text: req}]}],
+        generationConfig: {maxOutputTokens: 1500}
       });
+      // 일시적 과부하(429/503)는 몇 번 다시 시도한다
+      let res;
+      for (let attempt = 0; attempt < 4; attempt++){
+        res = await fetch(url, {
+          method: 'POST',
+          headers: {'content-type': 'application/json', 'x-goog-api-key': key},
+          body: body
+        });
+        if (res.status !== 429 && res.status !== 503) break;
+        if (attempt < 3){
+          const st = document.getElementById('aistatus');
+          if (st) st.textContent = 'Google 서버가 바빠 다시 시도하는 중입니다... (' + (attempt + 2) + '/4)';
+          await new Promise(r => setTimeout(r, 2000 * (attempt + 1)));
+        }
+      }
       const data = await res.json();
       if (!res.ok) throw new Error((data.error && data.error.message) || ('HTTP ' + res.status));
       const parts = (((data.candidates || [])[0] || {}).content || {}).parts || [];
