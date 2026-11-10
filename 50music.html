@@ -31,13 +31,24 @@ button:focus-visible,input:focus-visible{outline:2px solid #5248db}
 .source-tag.online{background:#e7edf7;color:#526080}
 .error-note{font-size:12px;color:#be4f62;margin-top:9px;min-height:16px}
 @media(max-width:780px){.listhead h1{font-size:21px}.brand small{display:none}}
+
+/* 커버 일러스트 */
+.cover{aspect-ratio:436/530;background:linear-gradient(180deg,#f6dcb0,#efc58f);border-color:#ecd3ad}
+.cover-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top;z-index:0;transition:transform 8s ease}
+.cover.playing .cover-img{transform:scale(1.035)}
+.cover .disk{position:absolute;top:14px;right:14px;width:19%;border-width:3px;box-shadow:0 0 0 4px #ffffffb3,0 6px 16px #3b2a1a40;z-index:2}
+.cover .disk:after{font-size:15px;width:40%;border-width:2px}
+.cover-label{z-index:2;bottom:14px;left:14px;background:#ffffffd9;color:#5a4a3a;padding:6px 10px;border-radius:99px;backdrop-filter:blur(4px);box-shadow:0 3px 10px #5a3a1a22}
+@media(max-width:780px){.grid{grid-template-columns:minmax(0,1fr)}.cover{aspect-ratio:1/1}.cover-img{object-position:center 12%}}
+.player,.playlist{min-width:0}.cover{width:100%}
+@media(prefers-reduced-motion:reduce){.cover-img{transition:none}.cover.playing .cover-img{transform:none}}
 </style>
 </head>
 <body>
 <main class="app">
 <header class="top"><div class="brand"><span class="brand-icon">♫</span> 50 <span>MUSIC</span><small> / PLAYLIST</small></div><div class="hint">오춘기 권오영 MUSIC <span class="status-dot">●</span></div></header>
 <div class="grid">
-<section class="panel player" aria-label="음악 플레이어"><div id="cover" class="cover"><div class="circle ring1"></div><div class="circle ring2"></div><div class="circle ring3"></div><div class="disk" aria-hidden="true"></div><div class="cover-label">오춘기 권오영 MUSIC</div></div><div class="eyebrow"><span class="pulse-dot"></span> NOW PLAYING</div><div id="title" class="songtitle">노래를 선택해 주세요</div><div id="artist" class="artist">재생목록에서 노래를 선택해 주세요</div><div class="progress"><input id="seek" class="bar" type="range" min="0" max="1000" value="0" aria-label="재생 위치"><div class="times"><span id="current">0:00</span><span id="duration">0:00</span></div></div><div class="controls"><button id="shuffle" class="iconbtn" title="셔플 재생" aria-label="셔플 재생" aria-pressed="false">⤨</button><button id="prev" class="iconbtn" title="이전 곡" aria-label="이전 곡">⏮</button><button id="play" class="play" title="재생" aria-label="재생">▶</button><button id="next" class="iconbtn" title="다음 곡" aria-label="다음 곡">⏭</button><button id="repeat" class="iconbtn" title="반복: 전체" aria-label="반복 모드" aria-pressed="false">↻</button></div><div class="bottom"><label for="volume">🔊 음량</label><input id="volume" class="vol" type="range" min="0" max="100" value="80"><span id="volumeText" class="hint">80%</span></div></section>
+<section class="panel player" aria-label="음악 플레이어"><div id="cover" class="cover"><img class="cover-img" src="https://kwonoyoung.github.io/oper6/images/ochungi-cover.jpg" alt="노트북으로 음악을 들으며 노을 진 언덕에 앉아 있는 오춘기 권오영 캐릭터" width="436" height="530" loading="eager" onerror="this.remove()"><div class="disk" aria-hidden="true"></div><div class="cover-label">오춘기 권오영 MUSIC</div></div><div class="eyebrow"><span class="pulse-dot"></span> NOW PLAYING</div><div id="title" class="songtitle">노래를 선택해 주세요</div><div id="artist" class="artist">재생목록에서 노래를 선택해 주세요</div><div class="progress"><input id="seek" class="bar" type="range" min="0" max="1000" value="0" aria-label="재생 위치"><div class="times"><span id="current">0:00</span><span id="duration">0:00</span></div></div><div class="controls"><button id="shuffle" class="iconbtn" title="셔플 재생" aria-label="셔플 재생" aria-pressed="false">⤨</button><button id="prev" class="iconbtn" title="이전 곡" aria-label="이전 곡">⏮</button><button id="play" class="play" title="재생" aria-label="재생">▶</button><button id="next" class="iconbtn" title="다음 곡" aria-label="다음 곡">⏭</button><button id="repeat" class="iconbtn" title="반복: 전체" aria-label="반복 모드" aria-pressed="false">↻</button></div><div class="bottom"><label for="volume">🔊 음량</label><input id="volume" class="vol" type="range" min="0" max="100" value="80"><span id="volumeText" class="hint">80%</span></div></section>
 <section class="panel playlist" id="dropZone" aria-label="재생목록"><div class="listhead"><div><div class="section-kicker">50 MUSIC / PLAYLIST</div><h1>50 MUSIC 플레이리스트<span class="title-dot">.</span></h1><p id="count" class="count">0곡 · MP3 재생목록</p></div><button class="add" id="addBtn">＋ 음악 추가</button></div><div class="actions"><input class="search" id="search" placeholder="곡 제목 검색" aria-label="곡 제목 검색"><button class="clear" id="clear" title="모든 곡 삭제">전체 삭제</button></div><div id="tracks" class="tracks"><div class="empty"><div class="big">♫</div>음악을 불러오는 중입니다.</div></div><div id="drop" class="drop">직접 만든 MP3도 추가할 수 있습니다.<br>기본 수록 6곡은 온라인 스트리밍 · 인터넷 연결 필요</div></section>
 </div><footer class="foot">오춘기 권오영 MUSIC</footer>
 </main><input type="file" id="fileInput" accept="audio/*,.mp3,.m4a,.wav,.ogg,.flac" multiple hidden><audio id="audio" preload="metadata"></audio>
