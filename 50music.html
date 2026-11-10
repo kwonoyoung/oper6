@@ -36,7 +36,7 @@ button:focus-visible,input:focus-visible{outline:2px solid #5248db}
 .cover{aspect-ratio:436/530;background:linear-gradient(180deg,#f6dcb0,#efc58f);border-color:#ecd3ad}
 .cover-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top;z-index:0;transition:transform 8s ease}
 .cover.playing .cover-img{transform:scale(1.035)}
-.cover .disk{position:absolute;top:14px;right:14px;width:19%;border-width:3px;box-shadow:0 0 0 4px #ffffffb3,0 6px 16px #3b2a1a40;z-index:2}
+.viz{position:absolute;top:10.5%;right:12%;width:18%;aspect-ratio:1;z-index:2;--lvl:0}.viz canvas{position:absolute;left:-55%;top:-55%;width:210%;height:210%;pointer-events:none}.pulse{position:absolute;inset:0;transform:scale(calc(1 + var(--lvl)*.16));will-change:transform}.cover .disk{position:absolute;inset:0;width:100%;border-width:3px;box-shadow:0 0 0 calc(4px + var(--lvl)*5px) #ffffffb3,0 0 calc(6px + var(--lvl)*30px) rgba(109,104,235,calc(.25 + var(--lvl)*.6)),0 6px 16px #3b2a1a40}
 .cover .disk:after{font-size:15px;width:40%;border-width:2px}
 .cover-label{z-index:2;bottom:14px;left:14px;background:#ffffffd9;color:#5a4a3a;padding:6px 10px;border-radius:99px;backdrop-filter:blur(4px);box-shadow:0 3px 10px #5a3a1a22}
 @media(max-width:780px){.grid{grid-template-columns:minmax(0,1fr)}.cover{aspect-ratio:1/1}.cover-img{object-position:center 12%}}
@@ -48,13 +48,13 @@ button:focus-visible,input:focus-visible{outline:2px solid #5248db}
 <main class="app">
 <header class="top"><div class="brand"><span class="brand-icon">♫</span> 50 <span>MUSIC</span><small> / PLAYLIST</small></div><div class="hint">오춘기 권오영 MUSIC <span class="status-dot">●</span></div></header>
 <div class="grid">
-<section class="panel player" aria-label="음악 플레이어"><div id="cover" class="cover"><img class="cover-img" src="https://kwonoyoung.github.io/oper6/images/ochungi-cover.jpg" alt="노트북으로 음악을 들으며 노을 진 언덕에 앉아 있는 오춘기 권오영 캐릭터" width="436" height="530" loading="eager" onerror="this.remove()"><div class="disk" aria-hidden="true"></div><div class="cover-label">오춘기 권오영 MUSIC</div></div><div class="eyebrow"><span class="pulse-dot"></span> NOW PLAYING</div><div id="title" class="songtitle">노래를 선택해 주세요</div><div id="artist" class="artist">재생목록에서 노래를 선택해 주세요</div><div class="progress"><input id="seek" class="bar" type="range" min="0" max="1000" value="0" aria-label="재생 위치"><div class="times"><span id="current">0:00</span><span id="duration">0:00</span></div></div><div class="controls"><button id="shuffle" class="iconbtn" title="셔플 재생" aria-label="셔플 재생" aria-pressed="false">⤨</button><button id="prev" class="iconbtn" title="이전 곡" aria-label="이전 곡">⏮</button><button id="play" class="play" title="재생" aria-label="재생">▶</button><button id="next" class="iconbtn" title="다음 곡" aria-label="다음 곡">⏭</button><button id="repeat" class="iconbtn" title="반복: 전체" aria-label="반복 모드" aria-pressed="false">↻</button></div><div class="bottom"><label for="volume">🔊 음량</label><input id="volume" class="vol" type="range" min="0" max="100" value="80"><span id="volumeText" class="hint">80%</span></div></section>
+<section class="panel player" aria-label="음악 플레이어"><div id="cover" class="cover"><img class="cover-img" src="https://kwonoyoung.github.io/oper6/images/ochungi-cover.jpg" alt="노트북으로 음악을 들으며 노을 진 언덕에 앉아 있는 오춘기 권오영 캐릭터" width="436" height="530" loading="eager" onerror="this.remove()"><div class="viz" aria-hidden="true"><canvas id="vizCanvas"></canvas><div id="pulse" class="pulse"><div class="disk"></div></div></div><div class="cover-label">오춘기 권오영 MUSIC</div></div><div class="eyebrow"><span class="pulse-dot"></span> NOW PLAYING</div><div id="title" class="songtitle">노래를 선택해 주세요</div><div id="artist" class="artist">재생목록에서 노래를 선택해 주세요</div><div class="progress"><input id="seek" class="bar" type="range" min="0" max="1000" value="0" aria-label="재생 위치"><div class="times"><span id="current">0:00</span><span id="duration">0:00</span></div></div><div class="controls"><button id="shuffle" class="iconbtn" title="셔플 재생" aria-label="셔플 재생" aria-pressed="false">⤨</button><button id="prev" class="iconbtn" title="이전 곡" aria-label="이전 곡">⏮</button><button id="play" class="play" title="재생" aria-label="재생">▶</button><button id="next" class="iconbtn" title="다음 곡" aria-label="다음 곡">⏭</button><button id="repeat" class="iconbtn" title="반복: 전체" aria-label="반복 모드" aria-pressed="false">↻</button></div><div class="bottom"><label for="volume">🔊 음량</label><input id="volume" class="vol" type="range" min="0" max="100" value="80"><span id="volumeText" class="hint">80%</span></div></section>
 <section class="panel playlist" id="dropZone" aria-label="재생목록"><div class="listhead"><div><div class="section-kicker">50 MUSIC / PLAYLIST</div><h1>50 MUSIC 플레이리스트<span class="title-dot">.</span></h1><p id="count" class="count">0곡 · MP3 재생목록</p></div><button class="add" id="addBtn">＋ 음악 추가</button></div><div class="actions"><input class="search" id="search" placeholder="곡 제목 검색" aria-label="곡 제목 검색"><button class="clear" id="clear" title="모든 곡 삭제">전체 삭제</button></div><div id="tracks" class="tracks"><div class="empty"><div class="big">♫</div>음악을 불러오는 중입니다.</div></div><div id="drop" class="drop">직접 만든 MP3도 추가할 수 있습니다.<br>기본 수록 6곡은 온라인 스트리밍 · 인터넷 연결 필요</div></section>
 </div><footer class="foot">오춘기 권오영 MUSIC</footer>
 </main><input type="file" id="fileInput" accept="audio/*,.mp3,.m4a,.wav,.ogg,.flac" multiple hidden><audio id="audio" preload="metadata"></audio>
 <script>
 (()=>{'use strict';
-const $=s=>document.querySelector(s), audio=$('#audio'), tracksEl=$('#tracks'), seek=$('#seek'), input=$('#fileInput');
+const $=s=>document.querySelector(s), audio=$('#audio');audio.crossOrigin='anonymous';const _a=audio, tracksEl=$('#tracks'), seek=$('#seek'), input=$('#fileInput');
 const BASE_TRACKS=[{"id":"github-1","name":"급여쌤이 최고야 1","origin":"online","url":"https://kwonoyoung.github.io/oper6/audio/salary1.mp3"},{"id":"github-2","name":"급여쌤이 최고야 2","origin":"online","url":"https://kwonoyoung.github.io/oper6/audio/salary2.mp3"},{"id":"dayoff-mrk503.mp3","name":"오십춘기 권오영","origin":"dayoff","url":"https://kwonoyoung.github.io/oper6/audio/mrk503.mp3"},{"id":"dayoff-mrk501.mp3","name":"삼시 세끼","origin":"dayoff","url":"https://kwonoyoung.github.io/oper6/audio/mrk501.mp3"},{"id":"dayoff-mrk502.mp3","name":"오늘도 간다","origin":"dayoff","url":"https://kwonoyoung.github.io/oper6/audio/mrk502.mp3"},{"id":"dayoff-mrk504.mp3","name":"슈퍼 아저씨","origin":"dayoff","url":"https://kwonoyoung.github.io/oper6/audio/mrk504.mp3"}];
 let extras=[], songs=[], currentId=null, shuffle=false, repeat='all', db=null, currentUrl=null, playToken=0;
 const fmt=t=>Number.isFinite(t)?`${Math.floor(t/60)}:${String(Math.floor(t%60)).padStart(2,'0')}`:'0:00';
@@ -67,7 +67,7 @@ function updatePlay(){let playing=!audio.paused;$('#play').textContent=playing?'
 function loadSong(s,auto=true){if(!s)return;playToken++;audio.pause();if(currentUrl){URL.revokeObjectURL(currentUrl);currentUrl=null}currentId=s.id;
  if(s.file){currentUrl=URL.createObjectURL(s.file);audio.src=currentUrl}else{audio.src=s.url}
  audio.load();$('#title').textContent=s.name;$('#artist').textContent=s.origin==='dayoff'?'2027 DAY OFF · 온라인 스트리밍':s.origin==='online'?'오춘기 권오영 · 온라인 스트리밍':'직접 추가한 음악';seek.value=0;$('#current').textContent='0:00';$('#duration').textContent='0:00';updatePlay();render();if(auto)tryPlay()}
-function tryPlay(){let token=playToken;audio.play().catch(e=>{if(token!==playToken)return;updatePlay();notify('재생할 수 없습니다. 온라인 곡은 인터넷 연결 및 원본 음원 주소를 확인해 주세요.');console.warn(e)})}
+function tryPlay(){startViz();let token=playToken;audio.play().catch(e=>{if(token!==playToken)return;updatePlay();notify('재생할 수 없습니다. 온라인 곡은 인터넷 연결 및 원본 음원 주소를 확인해 주세요.');console.warn(e)})}
 function reset(){playToken++;audio.pause();audio.removeAttribute('src');audio.load();if(currentUrl)URL.revokeObjectURL(currentUrl);currentUrl=null;currentId=null;$('#title').textContent='노래를 선택해 주세요';notify('재생목록에서 노래를 선택해 주세요');seek.value=0;$('#current').textContent='0:00';$('#duration').textContent='0:00';updatePlay();render()}
 function playIndex(i){if(!songs.length)return;loadSong(songs[(i+songs.length)%songs.length])}
 function skip(dir){if(!songs.length)return;let idx=songs.findIndex(x=>x.id===currentId);if(shuffle&&songs.length>1){let n;do{n=Math.floor(Math.random()*songs.length)}while(n===idx);playIndex(n)}else{playIndex(idx+dir)}}
@@ -82,6 +82,37 @@ $('#prev').onclick=()=>{if(audio.currentTime>3)audio.currentTime=0;else skip(-1)
 $('#shuffle').onclick=()=>{shuffle=!shuffle;$('#shuffle').classList.toggle('active',shuffle);$('#shuffle').setAttribute('aria-pressed',String(shuffle))};
 $('#repeat').onclick=()=>{repeat=repeat==='all'?'one':repeat==='one'?'off':'all';$('#repeat').textContent=repeat==='one'?'↻₁':repeat==='off'?'↪':'↻';$('#repeat').classList.toggle('active',repeat==='one');$('#repeat').title='반복: '+(repeat==='all'?'전체':repeat==='one'?'한 곡':'끔');$('#repeat').setAttribute('aria-label',$('#repeat').title)};
 $('#volume').oninput=e=>{audio.volume=Number(e.target.value)/100;$('#volumeText').textContent=e.target.value+'%'};audio.volume=.8;
+
+/* ===== 음악 반응 모션그래픽 ===== */
+const viz=$('.viz'),cv=$('#vizCanvas'),cx=cv.getContext('2d'),RM=matchMedia('(prefers-reduced-motion: reduce)');
+let actx=null,analyser=null,freq=null,raf=0,bars=new Float32Array(44),lvl=0,hue=0;
+function initViz(){if(actx)return;try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;actx=new AC();const src=actx.createMediaElementSource(audio);analyser=actx.createAnalyser();analyser.fftSize=256;analyser.smoothingTimeConstant=.78;src.connect(analyser);analyser.connect(actx.destination);freq=new Uint8Array(analyser.frequencyBinCount)}catch(e){console.warn('visualizer off',e);analyser=null}}
+function sizeCanvas(){const r=cv.getBoundingClientRect(),d=Math.min(devicePixelRatio||1,2);cv.width=Math.max(1,Math.round(r.width*d));cv.height=Math.max(1,Math.round(r.height*d))}
+new ResizeObserver(sizeCanvas).observe(cv);
+function frame(){
+  const W=cv.width,H=cv.height,c=W/2,N=bars.length,playing=!audio.paused;
+  let bass=0;
+  if(analyser&&playing){analyser.getByteFrequencyData(freq);
+    const use=Math.floor(freq.length*.72);
+    for(let i=0;i<N;i++){const k=Math.floor(Math.pow(i/N,1.35)*use);const v=freq[k]/255;bars[i]+= (v-bars[i])*(v>bars[i]?.55:.18)}
+    for(let i=0;i<6;i++)bass+=freq[i];bass=Math.pow(bass/6/255,1.6)
+  }else{for(let i=0;i<N;i++)bars[i]*=.88}
+  lvl+=(bass-lvl)*(bass>lvl?.5:.12);if(!playing)lvl*=.9;
+  viz.style.setProperty('--lvl',RM.matches?0:lvl.toFixed(3));
+  cx.clearRect(0,0,W,H);
+  const r0=W*.262,maxL=W*.2,lw=Math.max(2,W*.018);hue=(hue+.25)%360;
+  cx.lineCap='round';cx.lineWidth=lw;
+  for(let i=0;i<N;i++){const v=RM.matches?bars[i]*.4:bars[i];if(v<.01)continue;
+    const a=i/N*Math.PI*2-Math.PI/2,len=lw*.6+v*maxL,ca=Math.cos(a),sa=Math.sin(a);
+    cx.strokeStyle=`hsla(${(244+v*50+hue*.15)%360},85%,${56-v*14}%,${.55+v*.45})`;
+    cx.beginPath();cx.moveTo(c+ca*r0,c+sa*r0);cx.lineTo(c+ca*(r0+len),c+sa*(r0+len));cx.stroke()}
+  if(lvl>.05&&!RM.matches){cx.strokeStyle=`rgba(255,255,255,${Math.min(.7,lvl)})`;cx.lineWidth=Math.max(1,W*.006);cx.beginPath();cx.arc(c,c,r0+maxL*.15+lvl*maxL*.9,0,Math.PI*2);cx.stroke()}
+  const idle=!playing&&lvl<.004&&bars.every(b=>b<.01);
+  raf=idle?0:requestAnimationFrame(frame);
+}
+function startViz(){initViz();if(actx&&actx.state==='suspended')actx.resume();if(!raf)raf=requestAnimationFrame(frame)}
+audio.addEventListener('play',startViz);audio.addEventListener('pause',()=>{if(!raf)raf=requestAnimationFrame(frame)});
+
 audio.onplay=()=>{updatePlay();render()};audio.onpause=()=>{updatePlay();render()};audio.ontimeupdate=()=>{seek.value=audio.duration?Math.round(audio.currentTime/audio.duration*1000):0;$('#current').textContent=fmt(audio.currentTime)};audio.onloadedmetadata=()=>$('#duration').textContent=fmt(audio.duration);seek.oninput=()=>{if(audio.duration)audio.currentTime=(Number(seek.value)/1000)*audio.duration};
 audio.onended=()=>{if(repeat==='one'){audio.currentTime=0;tryPlay()}else{let idx=songs.findIndex(s=>s.id===currentId);if(repeat==='off'&&!shuffle&&idx===songs.length-1){audio.pause();audio.currentTime=0}else skip(1)}};
 audio.onerror=()=>{if(currentId){let s=songs.find(x=>x.id===currentId);if(s)notify(s.origin==='custom'?'음원 재생에 오류가 발생했습니다.':'온라인 음원을 불러올 수 없습니다. 인터넷 연결 또는 GitHub의 음원 파일('+s.url.split('/').pop()+')을 확인해 주세요.')}};
