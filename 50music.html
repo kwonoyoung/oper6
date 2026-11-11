@@ -67,7 +67,8 @@ function updatePlay(){let playing=!audio.paused;$('#play').textContent=playing?'
 function loadSong(s,auto=true){if(!s)return;playToken++;audio.pause();if(currentUrl){URL.revokeObjectURL(currentUrl);currentUrl=null}currentId=s.id;
  if(s.file){currentUrl=URL.createObjectURL(s.file);audio.src=currentUrl}else{audio.src=s.url}
  audio.load();$('#title').textContent=s.name;$('#artist').textContent=s.origin==='dayoff'?'2027 DAY OFF · 온라인 스트리밍':s.origin==='online'?'오춘기 권오영 · 온라인 스트리밍':'직접 추가한 음악';seek.value=0;$('#current').textContent='0:00';$('#duration').textContent='0:00';updatePlay();render();if(auto)tryPlay()}
-function tryPlay(){startViz();let token=playToken;audio.play().catch(e=>{if(token!==playToken)return;updatePlay();notify('재생할 수 없습니다. 온라인 곡은 인터넷 연결 및 원본 음원 주소를 확인해 주세요.');console.warn(e)})}
+function armGesture(){if(gestureArmed)return;gestureArmed=true;notify('▶ 화면을 한 번 누르면 음악이 바로 재생됩니다 (브라우저 자동재생 제한)');const go=e=>{['pointerdown','touchend','keydown'].forEach(t=>document.removeEventListener(t,go,true));gestureArmed=false;if(audio.paused&&!(e.target&&e.target.closest&&e.target.closest('#play,#tracks')))tryPlay()};['pointerdown','touchend','keydown'].forEach(t=>document.addEventListener(t,go,true))}
+function tryPlay(){startViz();let token=playToken;audio.play().catch(e=>{if(token!==playToken)return;updatePlay();if(e&&e.name==='NotAllowedError'){armGesture();return}notify('재생할 수 없습니다. 온라인 곡은 인터넷 연결 및 원본 음원 주소를 확인해 주세요.');console.warn(e)})}
 function reset(){playToken++;audio.pause();audio.removeAttribute('src');audio.load();if(currentUrl)URL.revokeObjectURL(currentUrl);currentUrl=null;currentId=null;$('#title').textContent='노래를 선택해 주세요';notify('재생목록에서 노래를 선택해 주세요');seek.value=0;$('#current').textContent='0:00';$('#duration').textContent='0:00';updatePlay();render()}
 function playIndex(i){if(!songs.length)return;loadSong(songs[(i+songs.length)%songs.length])}
 function skip(dir){if(!songs.length)return;let idx=songs.findIndex(x=>x.id===currentId);if(shuffle&&songs.length>1){let n;do{n=Math.floor(Math.random()*songs.length)}while(n===idx);playIndex(n)}else{playIndex(idx+dir)}}
@@ -85,7 +86,7 @@ $('#volume').oninput=e=>{audio.volume=Number(e.target.value)/100;$('#volumeText'
 
 /* ===== 음악 반응 모션그래픽 ===== */
 const viz=$('.viz'),cv=$('#vizCanvas'),cx=cv.getContext('2d'),RM=matchMedia('(prefers-reduced-motion: reduce)');
-let actx=null,analyser=null,freq=null,raf=0,bars=new Float32Array(44),lvl=0,hue=0;
+let gestureArmed=false,actx=null,analyser=null,freq=null,raf=0,bars=new Float32Array(44),lvl=0,hue=0;
 function initViz(){if(actx)return;try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;actx=new AC();const src=actx.createMediaElementSource(audio);analyser=actx.createAnalyser();analyser.fftSize=256;analyser.smoothingTimeConstant=.78;src.connect(analyser);analyser.connect(actx.destination);freq=new Uint8Array(analyser.frequencyBinCount)}catch(e){console.warn('visualizer off',e);analyser=null}}
 function sizeCanvas(){const r=cv.getBoundingClientRect(),d=Math.min(devicePixelRatio||1,2);cv.width=Math.max(1,Math.round(r.width*d));cv.height=Math.max(1,Math.round(r.height*d))}
 new ResizeObserver(sizeCanvas).observe(cv);
@@ -121,6 +122,6 @@ let errRun=0;audio.addEventListener('playing',()=>{errRun=0});audio.addEventList
 audio.onerror=()=>{if(currentId){let s=songs.find(x=>x.id===currentId);if(s)notify(s.origin==='custom'?'음원 재생에 오류가 발생했습니다.':'온라인 음원을 불러올 수 없습니다. 인터넷 연결 또는 GitHub의 음원 파일('+s.url.split('/').pop()+')을 확인해 주세요.')}};
 $('#search').oninput=render;$('#clear').onclick=async()=>{if(!extras.length){alert('기본 수록곡은 삭제되지 않습니다.');return}if(!confirm(`직접 추가한 ${extras.length}곡을 모두 삭제할까요? 기본 수록곡은 유지됩니다.`))return;try{await dbAction('clear')}catch(e){console.warn(e)}extras=[];allSongs();if(!songs.some(s=>s.id===currentId))loadSong(songs[0],false);else render()};
 const drop=$('#drop');['dragenter','dragover'].forEach(t=>$('#dropZone').addEventListener(t,e=>{e.preventDefault();drop.classList.add('drag')}));['dragleave','drop'].forEach(t=>$('#dropZone').addEventListener(t,e=>{e.preventDefault();drop.classList.remove('drag')}));$('#dropZone').addEventListener('drop',e=>addFiles(e.dataTransfer.files));
-(async()=>{allSongs();render();loadSong(songs[0],false);try{db=await openDb();extras=(await dbAction('getAll')).sort((a,b)=>a.added-b.added).map(s=>({...s,origin:'custom'}));allSongs();render()}catch(e){console.warn('IndexedDB unavailable',e);$('#drop').textContent='추가 음악의 자동 저장은 브라우저에 따라 제한될 수 있습니다. 기본 수록곡은 언제든 재생목록에 남습니다.'}})();
+(async()=>{allSongs();render();loadSong(songs[0],true);try{db=await openDb();extras=(await dbAction('getAll')).sort((a,b)=>a.added-b.added).map(s=>({...s,origin:'custom'}));allSongs();render()}catch(e){console.warn('IndexedDB unavailable',e);$('#drop').textContent='추가 음악의 자동 저장은 브라우저에 따라 제한될 수 있습니다. 기본 수록곡은 언제든 재생목록에 남습니다.'}})();
 })();
 </script></body></html>
