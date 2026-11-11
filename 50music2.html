@@ -80,7 +80,7 @@ $('#addBtn').onclick=()=>input.click();input.onchange=e=>{addFiles(e.target.file
 $('#play').onclick=()=>{if(!audio.src)loadSong(songs[0]);else audio.paused?tryPlay():audio.pause()};
 $('#prev').onclick=()=>{if(audio.currentTime>3)audio.currentTime=0;else skip(-1)};$('#next').onclick=()=>skip(1);
 $('#shuffle').onclick=()=>{shuffle=!shuffle;$('#shuffle').classList.toggle('active',shuffle);$('#shuffle').setAttribute('aria-pressed',String(shuffle))};
-$('#repeat').onclick=()=>{repeat=repeat==='all'?'one':repeat==='one'?'off':'all';$('#repeat').textContent=repeat==='one'?'↻₁':repeat==='off'?'↪':'↻';$('#repeat').classList.toggle('active',repeat==='one');$('#repeat').title='반복: '+(repeat==='all'?'전체':repeat==='one'?'한 곡':'끔');$('#repeat').setAttribute('aria-label',$('#repeat').title)};
+$('#repeat').onclick=()=>{repeat=repeat==='all'?'one':'all';$('#repeat').textContent=repeat==='one'?'↻₁':repeat==='off'?'↪':'↻';$('#repeat').classList.toggle('active',repeat==='one');$('#repeat').title='반복: '+(repeat==='all'?'전체':repeat==='one'?'한 곡':'끔');$('#repeat').setAttribute('aria-label',$('#repeat').title)};
 $('#volume').oninput=e=>{audio.volume=Number(e.target.value)/100;$('#volumeText').textContent=e.target.value+'%'};audio.volume=.8;
 
 /* ===== 음악 반응 모션그래픽 ===== */
@@ -113,8 +113,11 @@ function frame(){
 function startViz(){initViz();if(actx&&actx.state==='suspended')actx.resume();if(!raf)raf=requestAnimationFrame(frame)}
 audio.addEventListener('play',startViz);audio.addEventListener('pause',()=>{if(!raf)raf=requestAnimationFrame(frame)});
 
-audio.onplay=()=>{updatePlay();render()};audio.onpause=()=>{updatePlay();render()};audio.ontimeupdate=()=>{seek.value=audio.duration?Math.round(audio.currentTime/audio.duration*1000):0;$('#current').textContent=fmt(audio.currentTime)};audio.onloadedmetadata=()=>$('#duration').textContent=fmt(audio.duration);seek.oninput=()=>{if(audio.duration)audio.currentTime=(Number(seek.value)/1000)*audio.duration};
-audio.onended=()=>{if(repeat==='one'){audio.currentTime=0;tryPlay()}else{let idx=songs.findIndex(s=>s.id===currentId);if(repeat==='off'&&!shuffle&&idx===songs.length-1){audio.pause();audio.currentTime=0}else skip(1)}};
+if('mediaSession' in navigator){try{navigator.mediaSession.setActionHandler('nexttrack',()=>skip(1));navigator.mediaSession.setActionHandler('previoustrack',()=>skip(-1));navigator.mediaSession.setActionHandler('play',()=>tryPlay());navigator.mediaSession.setActionHandler('pause',()=>audio.pause())}catch(e){}}
+document.addEventListener('visibilitychange',()=>{if(actx&&actx.state==='suspended'&&!audio.paused)actx.resume()});
+audio.onplay=()=>{updatePlay();render();if('mediaSession' in navigator&&'MediaMetadata' in window){let s=songs.find(x=>x.id===currentId);if(s)try{navigator.mediaSession.metadata=new MediaMetadata({title:s.name,artist:'오춘기 권오영',album:'50 MUSIC'})}catch(e){}}};audio.onpause=()=>{updatePlay();render()};audio.ontimeupdate=()=>{seek.value=audio.duration?Math.round(audio.currentTime/audio.duration*1000):0;$('#current').textContent=fmt(audio.currentTime)};audio.onloadedmetadata=()=>$('#duration').textContent=fmt(audio.duration);seek.oninput=()=>{if(audio.duration)audio.currentTime=(Number(seek.value)/1000)*audio.duration};
+audio.onended=()=>{if(actx&&actx.state==='suspended')actx.resume();if(repeat==='one'){audio.currentTime=0;tryPlay()}else skip(1)};
+let errRun=0;audio.addEventListener('playing',()=>{errRun=0});audio.addEventListener('error',()=>{if(currentId&&songs.length>1&&++errRun<songs.length){let id=currentId;setTimeout(()=>{if(currentId===id)skip(1)},3000)}});
 audio.onerror=()=>{if(currentId){let s=songs.find(x=>x.id===currentId);if(s)notify(s.origin==='custom'?'음원 재생에 오류가 발생했습니다.':'온라인 음원을 불러올 수 없습니다. 인터넷 연결 또는 GitHub의 음원 파일('+s.url.split('/').pop()+')을 확인해 주세요.')}};
 $('#search').oninput=render;$('#clear').onclick=async()=>{if(!extras.length){alert('기본 수록곡은 삭제되지 않습니다.');return}if(!confirm(`직접 추가한 ${extras.length}곡을 모두 삭제할까요? 기본 수록곡은 유지됩니다.`))return;try{await dbAction('clear')}catch(e){console.warn(e)}extras=[];allSongs();if(!songs.some(s=>s.id===currentId))loadSong(songs[0],false);else render()};
 const drop=$('#drop');['dragenter','dragover'].forEach(t=>$('#dropZone').addEventListener(t,e=>{e.preventDefault();drop.classList.add('drag')}));['dragleave','drop'].forEach(t=>$('#dropZone').addEventListener(t,e=>{e.preventDefault();drop.classList.remove('drag')}));$('#dropZone').addEventListener('drop',e=>addFiles(e.dataTransfer.files));
