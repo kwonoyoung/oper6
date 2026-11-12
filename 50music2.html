@@ -42,13 +42,13 @@ button:focus-visible,input:focus-visible{outline:2px solid #5248db}
 @media(max-width:780px){.grid{grid-template-columns:minmax(0,1fr)}.cover{aspect-ratio:1/1}.cover-img{object-position:center 12%}}
 .player,.playlist{min-width:0}.cover{width:100%}
 @media(prefers-reduced-motion:reduce){.cover-img{transition:none}.cover.playing .cover-img{transform:none}}
-</style>
+.spec{position:relative;margin:14px 0 4px;height:118px;border-radius:14px;overflow:hidden;background:linear-gradient(180deg,rgba(9,13,20,.72),rgba(9,13,20,.9));border:1px solid var(--line)}.spec canvas{position:absolute;inset:0;width:100%;height:100%;display:block}.spec .sl{position:absolute;font:600 10px/1 system-ui,sans-serif;letter-spacing:.14em;color:rgba(243,245,250,.62);pointer-events:none}.spec .st{top:9px;left:12px}.spec .s1{bottom:7px;left:12px;letter-spacing:.04em}.spec .s2{bottom:7px;right:12px;letter-spacing:.04em}</style>
 </head>
 <body>
 <main class="app">
 <header class="top"><div class="brand"><span class="brand-icon">♫</span> 50 <span>MUSIC</span><small> / PLAYLIST</small></div><div class="hint">오춘기 권오영 MUSIC <span class="status-dot">●</span></div></header>
 <div class="grid">
-<section class="panel player" aria-label="음악 플레이어"><div id="cover" class="cover"><img class="cover-img" src="https://kwonoyoung.github.io/oper6/images/ochungi-cover.jpg" alt="노트북으로 음악을 들으며 노을 진 언덕에 앉아 있는 오춘기 권오영 캐릭터" width="436" height="530" loading="eager" onerror="this.remove()"><div class="viz" aria-hidden="true"><canvas id="vizCanvas"></canvas><div id="pulse" class="pulse"><div class="disk"></div></div></div><div class="cover-label">오춘기 권오영 MUSIC</div></div><div class="eyebrow"><span class="pulse-dot"></span> NOW PLAYING</div><div id="title" class="songtitle">노래를 선택해 주세요</div><div id="artist" class="artist">재생목록에서 노래를 선택해 주세요</div><div class="progress"><input id="seek" class="bar" type="range" min="0" max="1000" value="0" aria-label="재생 위치"><div class="times"><span id="current">0:00</span><span id="duration">0:00</span></div></div><div class="controls"><button id="shuffle" class="iconbtn" title="셔플 재생" aria-label="셔플 재생" aria-pressed="false">⤨</button><button id="prev" class="iconbtn" title="이전 곡" aria-label="이전 곡">⏮</button><button id="play" class="play" title="재생" aria-label="재생">▶</button><button id="next" class="iconbtn" title="다음 곡" aria-label="다음 곡">⏭</button><button id="repeat" class="iconbtn" title="반복: 전체" aria-label="반복 모드" aria-pressed="false">↻</button></div><div class="bottom"><label for="volume">🔊 음량</label><input id="volume" class="vol" type="range" min="0" max="100" value="80"><span id="volumeText" class="hint">80%</span></div></section>
+<section class="panel player" aria-label="음악 플레이어"><div id="cover" class="cover"><img class="cover-img" src="https://kwonoyoung.github.io/oper6/images/ochungi-cover.jpg" alt="노트북으로 음악을 들으며 노을 진 언덕에 앉아 있는 오춘기 권오영 캐릭터" width="436" height="530" loading="eager" onerror="this.remove()"><div class="viz" aria-hidden="true"><canvas id="vizCanvas"></canvas><div id="pulse" class="pulse"><div class="disk"></div></div></div><div class="cover-label">오춘기 권오영 MUSIC</div></div><div class="eyebrow"><span class="pulse-dot"></span> NOW PLAYING</div><div id="title" class="songtitle">노래를 선택해 주세요</div><div id="artist" class="artist">재생목록에서 노래를 선택해 주세요</div><div class="spec" aria-hidden="true"><canvas id="specCanvas"></canvas><span class="sl st">AUDIO SPECTRUM</span><span class="sl s1">45 Hz</span><span class="sl s2">12 kHz</span></div><div class="progress"><input id="seek" class="bar" type="range" min="0" max="1000" value="0" aria-label="재생 위치"><div class="times"><span id="current">0:00</span><span id="duration">0:00</span></div></div><div class="controls"><button id="shuffle" class="iconbtn" title="셔플 재생" aria-label="셔플 재생" aria-pressed="false">⤨</button><button id="prev" class="iconbtn" title="이전 곡" aria-label="이전 곡">⏮</button><button id="play" class="play" title="재생" aria-label="재생">▶</button><button id="next" class="iconbtn" title="다음 곡" aria-label="다음 곡">⏭</button><button id="repeat" class="iconbtn" title="반복: 전체" aria-label="반복 모드" aria-pressed="false">↻</button></div><div class="bottom"><label for="volume">🔊 음량</label><input id="volume" class="vol" type="range" min="0" max="100" value="80"><span id="volumeText" class="hint">80%</span></div></section>
 <section class="panel playlist" id="dropZone" aria-label="재생목록"><div class="listhead"><div><div class="section-kicker">50 MUSIC / PLAYLIST</div><h1>50 MUSIC 플레이리스트<span class="title-dot">.</span></h1><p id="count" class="count">0곡 · MP3 재생목록</p></div><button class="add" id="addBtn">＋ 음악 추가</button></div><div class="actions"><input class="search" id="search" placeholder="곡 제목 검색" aria-label="곡 제목 검색"><button class="clear" id="clear" title="모든 곡 삭제">전체 삭제</button></div><div id="tracks" class="tracks"><div class="empty"><div class="big">♫</div>음악을 불러오는 중입니다.</div></div><div id="drop" class="drop">직접 만든 MP3도 추가할 수 있습니다.<br>기본 수록곡은 온라인 스트리밍 · 인터넷 연결 필요</div></section>
 </div><footer class="foot">오춘기 권오영 MUSIC</footer>
 </main><input type="file" id="fileInput" accept="audio/*,.mp3,.m4a,.wav,.ogg,.flac" multiple hidden><audio id="audio" preload="metadata"></audio>
@@ -87,9 +87,29 @@ $('#volume').oninput=e=>{audio.volume=Number(e.target.value)/100;$('#volumeText'
 /* ===== 음악 반응 모션그래픽 ===== */
 const viz=$('.viz'),cv=$('#vizCanvas'),cx=cv.getContext('2d'),RM=matchMedia('(prefers-reduced-motion: reduce)');
 let gestureArmed=false,actx=null,analyser=null,freq=null,raf=0,bars=new Float32Array(44),lvl=0,hue=0;
-function initViz(){if(actx)return;try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;actx=new AC();const src=actx.createMediaElementSource(audio);analyser=actx.createAnalyser();analyser.fftSize=256;analyser.smoothingTimeConstant=.78;src.connect(analyser);analyser.connect(actx.destination);freq=new Uint8Array(analyser.frequencyBinCount)}catch(e){console.warn('visualizer off',e);analyser=null}}
+function initViz(){if(actx)return;try{const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;actx=new AC();const src=actx.createMediaElementSource(audio);analyser=actx.createAnalyser();analyser.fftSize=256;analyser.smoothingTimeConstant=.78;src.connect(analyser);analyser.connect(actx.destination);an2=actx.createAnalyser();an2.fftSize=4096;an2.smoothingTimeConstant=.7;src.connect(an2);f2=new Uint8Array(an2.frequencyBinCount);t2=new Uint8Array(an2.fftSize);freq=new Uint8Array(analyser.frequencyBinCount)}catch(e){console.warn('visualizer off',e);analyser=null}}
 function sizeCanvas(){const r=cv.getBoundingClientRect(),d=Math.min(devicePixelRatio||1,2);cv.width=Math.max(1,Math.round(r.width*d));cv.height=Math.max(1,Math.round(r.height*d))}
 new ResizeObserver(sizeCanvas).observe(cv);
+
+const sc=document.getElementById('specCanvas'),sx=sc.getContext('2d'),SB=56,sbars=new Float32Array(SB),speaks=new Float32Array(SB);let an2=null,f2=null,t2=null;
+function sizeSpec(){const r=sc.getBoundingClientRect(),d=Math.min(devicePixelRatio||1,2);sc.width=Math.max(1,Math.round(r.width*d));sc.height=Math.max(1,Math.round(r.height*d))}
+new ResizeObserver(sizeSpec).observe(sc);
+function drawSpec(playing){
+  const W=sc.width,H=sc.height,d=Math.min(devicePixelRatio||1,2);sx.clearRect(0,0,W,H);
+  const padX=12*d,top=26*d,waveH=22*d,bot=H-20*d,barBot=bot-waveH-4*d,barH=barBot-top,gap=Math.max(1,2*d),bw=(W-padX*2-gap*(SB-1))/SB;
+  if(an2&&playing){an2.getByteFrequencyData(f2);const ny=actx.sampleRate/2,n=f2.length;
+    for(let i=0;i<SB;i++){const lo=45*Math.pow(12000/45,i/SB),hi=45*Math.pow(12000/45,(i+1)/SB);let a=Math.floor(lo/ny*n),b=Math.max(a+1,Math.ceil(hi/ny*n)),m=0;for(let k=a;k<b&&k<n;k++)m=Math.max(m,f2[k]);
+      const v=Math.pow(m/255,1.2);sbars[i]+=(v-sbars[i])*(v>sbars[i]?.6:.2)}
+  }else for(let i=0;i<SB;i++)sbars[i]*=.9;
+  for(let i=0;i<SB;i++){let v=RM.matches?sbars[i]*.5:sbars[i];speaks[i]=Math.max(v,speaks[i]-.008);
+    const h=Math.max(2*d,v*barH),x=padX+i*(bw+gap);
+    sx.fillStyle=`rgba(222,240,90,${.55+v*.45})`;sx.fillRect(x,barBot-h,bw,h);
+    if(speaks[i]>.02){sx.fillStyle='rgba(245,252,190,.9)';sx.fillRect(x,barBot-speaks[i]*barH-2*d,bw,1.5*d)}}
+  sx.strokeStyle='rgba(255,255,255,.7)';sx.lineWidth=Math.max(1,d);sx.beginPath();const wy=bot-waveH/2;
+  if(an2&&playing){an2.getByteTimeDomainData(t2);const step=t2.length/(W-padX*2);for(let x=0;x<=W-padX*2;x+=2*d){const v=(t2[Math.floor(x*step)]-128)/128;const y=wy+v*waveH*.9;x?sx.lineTo(padX+x,y):sx.moveTo(padX,y)}}
+  else{sx.moveTo(padX,wy);sx.lineTo(W-padX,wy)}
+  sx.stroke();return sbars.some(b=>b>.01)
+}
 function frame(){
   const W=cv.width,H=cv.height,c=W/2,N=bars.length,playing=!audio.paused;
   let bass=0;
@@ -108,7 +128,8 @@ function frame(){
     cx.strokeStyle=`hsla(${(244+v*50+hue*.15)%360},85%,${56-v*14}%,${.55+v*.45})`;
     cx.beginPath();cx.moveTo(c+ca*r0,c+sa*r0);cx.lineTo(c+ca*(r0+len),c+sa*(r0+len));cx.stroke()}
   if(lvl>.05&&!RM.matches){cx.strokeStyle=`rgba(255,255,255,${Math.min(.7,lvl)})`;cx.lineWidth=Math.max(1,W*.006);cx.beginPath();cx.arc(c,c,r0+maxL*.15+lvl*maxL*.9,0,Math.PI*2);cx.stroke()}
-  const idle=!playing&&lvl<.004&&bars.every(b=>b<.01);
+  const specOn=drawSpec(playing);
+  const idle=!playing&&!specOn&&lvl<.004&&bars.every(b=>b<.01);
   raf=idle?0:requestAnimationFrame(frame);
 }
 function startViz(){initViz();if(actx&&actx.state==='suspended')actx.resume();if(!raf)raf=requestAnimationFrame(frame)}
