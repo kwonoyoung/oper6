@@ -72,12 +72,83 @@ function updatePlay(){let playing=!audio.paused;$('#play').textContent=playing?'
    - 빈 줄은 절 사이 쉬는 구간으로 처리합니다.
    - start/end(초): 시간 없는 줄을 나눌 때 가사가 시작·끝나는 대략적 시간 (생략 가능) */
 const LYRICS={
+'salary1.mp3':{end:272,text:`[0:07] 급여 쌤들 다들 잘 지내시죠
+월급날은 왜 이렇게 빨리 올까요?
+지난달에도 했는데
+이번 달도 또 하네요
+나이스, 월급은 나이스
+조각은 뭐 확인하고
+월별 집계 마감하고
+가족 수당 중복은 안 돼
+계좌번호 틀리면 큰일 나
+이 사람은 어디 갔고
+저 사람은 왜 또 왔나?
+승급 복지 인사변동
+머리를 감싸쥐고 다시 확인해
+기초자료 생성하고
+대상자 생성 정확하게 한 번만
+환수 환급 조정까지
+월급여 일괄작업을 돌려요
+
+[1:05] 생성에 생성에
+기초자료 생성에 돌려요
+
+[1:15] 월급여 일괄작업 돌려
+확인해 장면도 확인해
+나이스 나이스 월급은 나이스
+딸깍딸깍 오류 나면 다시 클릭
+월급날에는 내가 왕
+급여쌤이 최고야
+대상자 생성 몇 번이냐 묻는다면
+정확하게 한 번만
+중복 생성 조심하고
+퇴직자 시간을 꼭 챙기고
+조정수당 빠졌는지 또 확인해
+지로파일 만들고
+전월급여 비교하고
+수당 공제 확인하고
+마감 전에 한 번 더, 한 번 더
+기초자료 생성하고
+대상자 생성 정확하게 한 번만
+환수 환급 조정까지
+월급여 일괄작업을 돌려요
+
+[2:20] 생성해 생성해 기초자료 생성해
+돌려돌려 월급여 일괄작업 돌려
+확인해 확인해 수당 변동 확인해
+나이스 나이스 월급은 나이스
+딸깍딸깍 오류 나면 다시 클릭
+월급날엔 내가 왕
+급여쌤이 최고야 최고야
+그런데 금액이 안 맞아요
+어디서 어디서 틀렸을까?
+천 원, 천 원 차예요
+찾아요 찾아요
+공제 내용 열어보고
+소급분을 다시 보고
+또 보다가 찾았다 찾았다
+
+[3:16] 드디어 그제야 숨을 쉬어요
+누가 알아줄까? 이 한 달의 무게를
+기초자료 생성 월급여 일괄작업
+기초자료 생성 월급여 일괄작업
+기초자료 생성 월급여 일괄작업
+확인 확인 또 확인
+생성해 생성해 돌려 돌려 돌려
+월급은 나이스 나이스 나이스
+급여쌤이 최고야 최고야
+이번 달 급여도 끝났습니다
+
+[4:09] 잠깐, 인사변동 생겼대요
+자료 생성 월급여 일괄작업
+또 돌려야겠네요
+끝으로 급여대장 반드시 확인`},
 };
 let lyr=null,lyrIdx=-1;const lyrList=document.getElementById('lyrList'),lyrNone=document.getElementById('lyrNone');
 function parseLyrics(src){const out=[];for(const raw of src.text.trim().split('\n')){const m=raw.match(/^\s*\[(\d+):(\d+(?:\.\d+)?)\]\s*(.*)$/);if(m)out.push({t:+m[1]*60+ +m[2],s:m[3].trim()});else out.push({t:null,s:raw.trim()})}return out}
-function timeLyrics(L,dur){const st=lyr.src.start??Math.min(12,dur*.06),en=lyr.src.end??dur*.96;const pts=[];L.forEach((l,i)=>{if(l.t!=null)pts.push(i)});
-  const fill=(a,b,ta,tb)=>{const idx=[];for(let i=a;i<b;i++)if(L[i].t==null)idx.push(i);const w=idx.map(i=>L[i].s?1:.5),tot=w.reduce((x,y)=>x+y,0)||1;let acc=0;idx.forEach((i,k)=>{L[i].t=ta+(tb-ta)*acc/tot;acc+=w[k]})};
-  let prevI=0,prevT=st;for(const p of pts){fill(prevI,p,prevT,L[p].t);prevI=p+1;prevT=L[p].t+3}fill(prevI,L.length,prevT,en)}
+function timeLyrics(L,dur){const st=lyr.src.start??Math.min(12,dur*.06),en=lyr.src.end??dur*.96;const W=l=>l.s?Math.max(5,l.s.replace(/\s/g,'').length):3;
+  const anc=[];L.forEach((l,i)=>{if(l.t!=null)anc.push(i)});if(!anc.length||anc[0]!==0){if(L[0].t==null)L[0].t=st;anc.unshift(0)}
+  for(let a=0;a<anc.length;a++){const i0=anc[a],i1=a+1<anc.length?anc[a+1]:L.length,t0=L[i0].t,t1=a+1<anc.length?L[i1].t:en;let tot=0;for(let i=i0;i<i1;i++)tot+=W(L[i]);let acc=0;for(let i=i0;i<i1;i++){L[i].t=t0+(t1-t0)*acc/tot;acc+=W(L[i])}}}
 function loadLyrics(s){lyr=null;lyrIdx=-1;lyrList.replaceChildren();lyrList.style.transform='translateY(0)';const key=s&&s.url?s.url.split('/').pop():s?s.name:'';const src=LYRICS[key];
   lyrNone.style.display=src?'none':'grid';if(!src)return;lyr={src,lines:parseLyrics(src),timed:false};
   lyr.lines.forEach((l,i)=>{const d=document.createElement('div');d.className='ln'+(l.s?'':' gap');d.textContent=l.s||'';if(l.s)d.onclick=()=>{if(lyr.timed){audio.currentTime=l.t;if(audio.paused)tryPlay()}};lyrList.append(d)});
