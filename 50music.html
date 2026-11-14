@@ -55,7 +55,7 @@ button:focus-visible,input:focus-visible{outline:2px solid #5248db}
 <script>
 (()=>{'use strict';
 const $=s=>document.querySelector(s), audio=$('#audio');audio.crossOrigin='anonymous';const _a=audio, tracksEl=$('#tracks'), seek=$('#seek'), input=$('#fileInput');
-const BASE_TRACKS=[{"id":"github-1","name":"급여쌤이 최고야","origin":"online","url":"https://kwonoyoung.github.io/oper6/audio/salary1.mp3"},{"id":"dayoff-mrk503.mp3","name":"오십춘기 권오영","origin":"dayoff","url":"https://kwonoyoung.github.io/oper6/audio/mrk503.mp3"},{"id":"dayoff-mrk502.mp3","name":"오늘도 간다","origin":"dayoff","url":"https://kwonoyoung.github.io/oper6/audio/mrk502.mp3"}];
+const BASE_TRACKS=[{"id":"github-1","name":"급여쌤이 최고야","origin":"online","url":"https://kwonoyoung.github.io/oper6/audio/salary1.mp3"},{"id":"dayoff-mrk503.mp3","name":"오십춘기 권오영","origin":"dayoff","url":"https://kwonoyoung.github.io/oper6/audio/mrk503.mp3"},{"id":"dayoff-mrk502.mp3","name":"오늘도 간다","origin":"dayoff","url":"https://kwonoyoung.github.io/oper6/audio/mrk502.mp3"},{"id":"github-9","name":"신호등처럼","origin":"online","url":"https://kwonoyoung.github.io/oper6/audio/signal.mp3"}];
 let extras=[], songs=[], currentId=null, shuffle=false, repeat='all', db=null, currentUrl=null, playToken=0;
 const fmt=t=>Number.isFinite(t)?`${Math.floor(t/60)}:${String(Math.floor(t%60)).padStart(2,'0')}`:'0:00';
 const safeName=n=>n.replace(/\.[^.]+$/,'').replace(/_/g,' ');
@@ -72,6 +72,75 @@ function updatePlay(){let playing=!audio.paused;$('#play').textContent=playing?'
    - 빈 줄은 절 사이 쉬는 구간으로 처리합니다.
    - start/end(초): 시간 없는 줄을 나눌 때 가사가 시작·끝나는 대략적 시간 (생략 가능) */
 const LYRICS={
+'signal.mp3':{end:303,text:`[0:03] 괜찮아…
+조금 늦어도 괜찮아.
+
+[0:11] 오늘도 참 긴 하루였지
+웃는 얼굴 뒤에 숨긴 한숨
+아무도 모르게 삼킨 눈물이
+가을바람에 흩어지네
+
+모두가 앞서가는 것 같아
+나만 제자리에 선 것 같아
+고개를 숙인 그 길 위에서
+붉은 신호등을 바라봤어
+
+문득 그런 생각이 들었어
+우리가 기다릴 수 있는 이유
+저 빨간불도 언젠가는
+초록빛으로 바뀐다는 걸
+
+[1:12] 괜찮아, 조금만 더 기다려
+멈춰 있다고 끝난 건 아냐
+세상의 모든 빨간불에도
+다음 색깔은 기다리고 있어
+
+오늘이 조금 힘들었다면
+내일은 조금 웃어도 좋아
+너의 계절도 바뀔 거야
+저 신호등처럼
+
+분명, 좋은 쪽으로…
+
+낙엽은 떨어져도 괜찮아
+겨울 끝엔 봄이 오니까
+지금은 아무것도 보이지 않아도
+너는 잘 걸어가고 있어
+
+가끔은 쉬어가도 괜찮아
+누구보다 늦어도 괜찮아
+멈춘 게 아니라 기다리는 거야
+다시 걸어갈 그 순간을
+
+[2:38] 누군가 내게 물었어
+언제쯤 괜찮아질 거냐고
+
+나도 아직은 모르겠어
+하지만 하나는 알 것 같아
+
+[3:31] 영원한 빨간불은 없다는 걸…
+
+[3:51] 괜찮아, 울어도 괜찮아
+여기까지 온 것만으로도
+너는 충분히 잘해왔잖아
+그걸 잊지 않았으면 해
+
+어둠이 오래 머문다 해도
+언젠가 아침은 찾아오니까
+너의 세상도 바뀔 거야
+저 신호등처럼
+
+조금 더 환한 빛으로…
+
+[4:26] 우리가 신호등을 기다리는 건
+곧 바뀔 거란 걸 알기 때문이야
+
+그러니까…
+
+조금만 더 힘내자.
+
+우리의 불빛도
+곧 바뀔 테니까.`},
 'mrk502.mp3':{end:206,text:`[0:01] 얼씨구 좋다!
 
 하나 둘!
@@ -380,7 +449,7 @@ function tryPlay(){startViz();let token=playToken;audio.play().catch(e=>{if(toke
 function reset(){playToken++;audio.pause();audio.removeAttribute('src');audio.load();if(currentUrl)URL.revokeObjectURL(currentUrl);currentUrl=null;currentId=null;$('#title').textContent='노래를 선택해 주세요';notify('재생목록에서 노래를 선택해 주세요');seek.value=0;$('#current').textContent='0:00';$('#duration').textContent='0:00';updatePlay();render()}
 function playIndex(i){if(!songs.length)return;loadSong(songs[(i+songs.length)%songs.length])}
 function skip(dir){if(!songs.length)return;let idx=songs.findIndex(x=>x.id===currentId);if(shuffle&&songs.length>1){let n;do{n=Math.floor(Math.random()*songs.length)}while(n===idx);playIndex(n)}else{playIndex(idx+dir)}}
-const DUR_BASE={"salary1.mp3": 279.4, "mrk503.mp3": 97.2, "mrk502.mp3": 209.9},DUR={};
+const DUR_BASE={"salary1.mp3": 279.4, "mrk503.mp3": 97.2, "mrk502.mp3": 209.9, "signal.mp3": 307.9},DUR={};
 function durKey(s){return s.url?s.url.split('/').pop():s.id}
 function fmtDur(t){t=Math.floor(t);return Math.floor(t/60)+':'+String(t%60).padStart(2,'0')}
 function getDur(s){const k=durKey(s);if(DUR[k]!=null)return DUR[k];if(DUR_BASE[k]!=null)return DUR_BASE[k];
