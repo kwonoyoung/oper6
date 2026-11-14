@@ -55,7 +55,7 @@ button:focus-visible,input:focus-visible{outline:2px solid #5248db}
 <script>
 (()=>{'use strict';
 const $=s=>document.querySelector(s), audio=$('#audio');audio.crossOrigin='anonymous';const _a=audio, tracksEl=$('#tracks'), seek=$('#seek'), input=$('#fileInput');
-const BASE_TRACKS=[{"id":"github-1","name":"급여쌤이 최고야","origin":"online","url":"https://kwonoyoung.github.io/oper6/audio/salary1.mp3"},{"id":"dayoff-mrk503.mp3","name":"오십춘기 권오영","origin":"dayoff","url":"https://kwonoyoung.github.io/oper6/audio/mrk503.mp3"},{"id":"dayoff-mrk502.mp3","name":"오늘도 간다","origin":"dayoff","url":"https://kwonoyoung.github.io/oper6/audio/mrk502.mp3"},{"id":"github-9","name":"신호등처럼","origin":"online","url":"https://kwonoyoung.github.io/oper6/audio/signal.mp3"}];
+const BASE_TRACKS=[{"id":"github-1","name":"급여쌤이 최고야","origin":"online","url":"https://kwonoyoung.github.io/oper6/audio/salary1.mp3"},{"id":"dayoff-mrk503.mp3","name":"오십춘기 권오영","origin":"dayoff","url":"https://kwonoyoung.github.io/oper6/audio/mrk503.mp3"},{"id":"dayoff-mrk502.mp3","name":"오늘도 간다","origin":"dayoff","url":"https://kwonoyoung.github.io/oper6/audio/mrk502.mp3"},{"id":"github-9","name":"신호등처럼","origin":"online","url":"https://kwonoyoung.github.io/oper6/audio/signal.mp3"},{"id":"github-10","name":"연말정산","origin":"online","url":"https://kwonoyoung.github.io/oper6/audio/yearend.mp3"}];
 let extras=[], songs=[], currentId=null, shuffle=false, repeat='all', db=null, currentUrl=null, playToken=0;
 const fmt=t=>Number.isFinite(t)?`${Math.floor(t/60)}:${String(Math.floor(t%60)).padStart(2,'0')}`:'0:00';
 const safeName=n=>n.replace(/\.[^.]+$/,'').replace(/_/g,' ');
@@ -72,6 +72,103 @@ function updatePlay(){let playing=!audio.paused;$('#play').textContent=playing?'
    - 빈 줄은 절 사이 쉬는 구간으로 처리합니다.
    - start/end(초): 시간 없는 줄을 나눌 때 가사가 시작·끝나는 대략적 시간 (생략 가능) */
 const LYRICS={
+'yearend.mp3':{end:229,text:`[0:02] 어이~ 전국의 급여 담당자 여러분!
+새해 복 많이 받으셨습니까?
+복은 무슨 복!
+일월만 되면 또 찾아오는 그 녀석!
+자! 홈택스 열고!
+나이스 켜고!
+연말정산~ 출발이다!
+
+[0:17] 연말정산! 연말정산!
+돌려받나? 더 내야 하나?
+아싸라비야~ 환급이다!
+아이고머니나~ 추가 징수!
+
+연말정산! 연말정산!
+십삼월의 월급이냐 세금 폭탄이냐!
+웃는 사람! 우는 사람!
+급여 담당자는 오늘도 바쁘다!
+
+재직자! 퇴직자! 휴직자 확인!
+급여대장 펼쳐 놓고 대상자 확인!
+전출자도 확인하고 중도입사자
+전 근무지 소득자료 꼼꼼하게 챙겨!
+
+정근수당 명절휴가비 성과상여금!
+외부강사료 학교성금 빠진 건 없나?
+자료 하나 빠지면 다시 처음부터
+아이고 내 머리야! 눈앞이 빙빙!
+
+나이스에서 기초자료 만들고!
+등록 권한 열어 주고!
+홈택스에서 PDF 내려받아
+올려! 올려! 올려 주세요!
+
+연말정산! 연말정산!
+돌려받나? 더 내야 하나?
+아싸라비야~ 환급이다!
+아이고머니나~ 추가 징수!
+
+연말정산! 연말정산!
+십삼월의 월급이냐 세금 폭탄이냐!
+환급이면 치킨 파티!
+추가 징수면 라면 파티!
+
+의료비! 교육비! 기부금 확인!
+보험료 연금저축 자료도 확인!
+부양가족 중복공제 조심하세요!
+잘못 넣은 공제자료 다시 확인!
+
+서류 받고 권한 회수 검토 시작!
+빠진 서류 연락하면 대답은 잠깐!
+“선생님~ 작년에 냈는데 또 내나요?”
+“작년 것은 작년 거죠! 올해 것도 주세요!”
+
+신고파일 만들었더니 오류 발생!
+하나 고쳐 다시 내니 또 오류 발생!
+오류 수정 재생성 또다시 검증!
+아이고~ 홈택스야! 우리 친하게 지내자!
+
+[2:04] (직원) 선생님! 저 얼마 돌려받아요?
+(급여쌤) 잠깐만요~ 계산 좀 해 봅시다!
+(직원) 환급이면 제가 커피 쏠게요!
+(급여쌤) 추가 징수면 제가 쏴야 하나요?
+(직원) 어? 왜 작년보다 적어요?
+(급여쌤) 소득하고 공제가 다르잖아요!
+(직원) 그럼 환급은 언제 들어와요?
+(급여쌤) 급여 반영 일정부터 확인하세요!
+
+[2:26] 연말정산! 연말정산!
+돌려받나? 더 내야 하나?
+아싸라비야~ 환급이다!
+아이고머니나~ 추가 징수!
+
+연말정산! 연말정산!
+이월환급 분할처리 확인해요!
+세금 계산 신고파일!
+오류 없이 마무리하자!
+
+연말정산! 연말정산!
+돌려받나? 더 내야 하나?
+아싸라비야~ 환급이다!
+아이고머니나~ 추가 징수!
+
+아싸라비야! 돈 들어온다!
+아이고머니나! 세금 더 낸다!
+웃어도 연말정산! 울어도 연말정산!
+급여쌤 최고다! 최고야!
+
+[3:31] (급여쌤) 아휴~ 드디어 끝났다!
+이제 좀 쉬어 볼까?
+
+(직원) 선생님~ 저 공제자료 하나 빠졌는데요?
+(급여쌤) 뭐어어어? 지금요?
+아이고오오오오~!
+
+[3:43] 연! 말! 정! 산!
+내년에 또 만나자!
+오춘기 권오영~ 얼쑤!`},
 'signal.mp3':{end:303,text:`[0:03] 괜찮아…
 조금 늦어도 괜찮아.
 
@@ -449,7 +546,7 @@ function tryPlay(){startViz();let token=playToken;audio.play().catch(e=>{if(toke
 function reset(){playToken++;audio.pause();audio.removeAttribute('src');audio.load();if(currentUrl)URL.revokeObjectURL(currentUrl);currentUrl=null;currentId=null;$('#title').textContent='노래를 선택해 주세요';notify('재생목록에서 노래를 선택해 주세요');seek.value=0;$('#current').textContent='0:00';$('#duration').textContent='0:00';updatePlay();render()}
 function playIndex(i){if(!songs.length)return;loadSong(songs[(i+songs.length)%songs.length])}
 function skip(dir){if(!songs.length)return;let idx=songs.findIndex(x=>x.id===currentId);if(shuffle&&songs.length>1){let n;do{n=Math.floor(Math.random()*songs.length)}while(n===idx);playIndex(n)}else{playIndex(idx+dir)}}
-const DUR_BASE={"salary1.mp3": 279.4, "mrk503.mp3": 97.2, "mrk502.mp3": 209.9, "signal.mp3": 307.9},DUR={};
+const DUR_BASE={"salary1.mp3": 279.4, "mrk503.mp3": 97.2, "mrk502.mp3": 209.9, "signal.mp3": 307.9, "yearend.mp3": 231.1},DUR={};
 function durKey(s){return s.url?s.url.split('/').pop():s.id}
 function fmtDur(t){t=Math.floor(t);return Math.floor(t/60)+':'+String(t%60).padStart(2,'0')}
 function getDur(s){const k=durKey(s);if(DUR[k]!=null)return DUR[k];if(DUR_BASE[k]!=null)return DUR_BASE[k];
