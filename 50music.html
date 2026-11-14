@@ -55,7 +55,7 @@ button:focus-visible,input:focus-visible{outline:2px solid #5248db}
 <script>
 (()=>{'use strict';
 const $=s=>document.querySelector(s), audio=$('#audio');audio.crossOrigin='anonymous';const _a=audio, tracksEl=$('#tracks'), seek=$('#seek'), input=$('#fileInput');
-const BASE_TRACKS=[{"id":"github-1","name":"급여쌤이 최고야 1","origin":"online","url":"https://kwonoyoung.github.io/oper6/audio/salary1.mp3"},{"id":"dayoff-mrk503.mp3","name":"오십춘기 권오영","origin":"dayoff","url":"https://kwonoyoung.github.io/oper6/audio/mrk503.mp3"},{"id":"dayoff-mrk502.mp3","name":"오늘도 간다","origin":"dayoff","url":"https://kwonoyoung.github.io/oper6/audio/mrk502.mp3"}];
+const BASE_TRACKS=[{"id":"github-1","name":"급여쌤이 최고야","origin":"online","url":"https://kwonoyoung.github.io/oper6/audio/salary1.mp3"},{"id":"dayoff-mrk503.mp3","name":"오십춘기 권오영","origin":"dayoff","url":"https://kwonoyoung.github.io/oper6/audio/mrk503.mp3"},{"id":"dayoff-mrk502.mp3","name":"오늘도 간다","origin":"dayoff","url":"https://kwonoyoung.github.io/oper6/audio/mrk502.mp3"}];
 let extras=[], songs=[], currentId=null, shuffle=false, repeat='all', db=null, currentUrl=null, playToken=0;
 const fmt=t=>Number.isFinite(t)?`${Math.floor(t/60)}:${String(Math.floor(t%60)).padStart(2,'0')}`:'0:00';
 const safeName=n=>n.replace(/\.[^.]+$/,'').replace(/_/g,' ');
